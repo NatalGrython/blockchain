@@ -1,5 +1,5 @@
 import { createPrivateKey, createPublicKey, KeyObject } from "crypto";
-import { createKeyPairs } from "./utils";
+import { createKeyFromString, createKeyPairs } from "./utils";
 
 export class User {
   private privateKey: KeyObject;
@@ -38,18 +38,8 @@ export const createUser = async () => {
 };
 
 export const loadUser = (address: string, purse: string) => {
-  const publicKey = createPublicKey({
-    key: Buffer.from(address, "base64"),
-    type: "pkcs1",
-    format: "der",
-  });
+  const publicKey = createKeyFromString(address, "public");
+  const privateKey = createKeyFromString(purse, "private");
 
-  const privateKey = createPrivateKey({
-    key: Buffer.from(purse, "base64"),
-    type: "pkcs8",
-    format: "der",
-  });
-  const user = new User(publicKey, privateKey);
-
-  return user;
+  return new User(privateKey, publicKey);
 };

@@ -12,6 +12,7 @@ import { Transaction } from "../transactions";
 import { START_PERCENT, STORAGE_REWARD } from "../transactions/constants";
 import { createHashSha } from "../transactions/utils";
 import { User } from "../user";
+import { createKeyFromString } from "../user/utils";
 import { DIFFICULTY, TXS_LIMIT } from "./constants";
 
 export class Block {
@@ -275,7 +276,7 @@ export class Block {
     return verify(
       "sha256",
       Buffer.from(this.currentHash),
-      createPublicKey(this.miner),
+      createKeyFromString(this.miner, "public"),
       this.signature
     );
   }

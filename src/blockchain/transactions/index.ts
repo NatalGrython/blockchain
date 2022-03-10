@@ -1,5 +1,6 @@
 import { createPublicKey, KeyObject, randomBytes, sign, verify } from "crypto";
 import { User } from "../user";
+import { createKeyFromString } from "../user/utils";
 import { START_PERCENT, STORAGE_REWARD } from "./constants";
 import { createHashSha } from "./utils";
 
@@ -59,7 +60,7 @@ export class Transaction {
     return verify(
       "sha256",
       Buffer.from(this.currentHash),
-      createPublicKey(this.sender),
+      createKeyFromString(this.sender, "public"),
       this.signature
     );
   }
@@ -84,8 +85,6 @@ export const newTransaction = (
     transaction.toStorage = STORAGE_REWARD;
   }
   transaction.currentHash = transaction.createTransactionHash();
-  console.log("kww");
   transaction.sign(user.private);
-  console.log("kww1");
   return transaction;
 };

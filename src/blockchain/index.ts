@@ -1,3 +1,4 @@
+import { sign, verify } from "crypto";
 import { Block, createBlock } from "./block";
 import { loadChain, newChain } from "./chain";
 import { newTransaction } from "./transactions";
@@ -7,32 +8,34 @@ import { createUser, loadUser } from "./user";
   try {
     const user = await createUser();
 
-    const user1 = loadUser(user.stringAddress, user.stringPrivate);
-    console.log(user1);
+    await newChain("kek.sqlite", user.stringAddress);
 
-    // console.log(user.stringAddress === user1.stringAddress);
+    const kek = async () => {
+      const { blockchain: chain, close } = await loadChain("kek.sqlite");
 
-    // await newChain("kek.sqlite", user.stringAddress);
+      for (let i = 0; i < 4; i++) {
+        const block = new Block(user.stringAddress, await chain.lastHash());
 
-    // const { blockchain: chain, close } = await loadChain("kek.sqlite");
+        await block.addTransaction(
+          chain,
+          newTransaction(user, await chain.lastHash(), "adress1", 5)
+        );
 
-    // for (let i = 0; i < 4; i++) {
-    //   const block = new Block(user.stringAddress, await chain.lastHash());
+        await block.addTransaction(
+          chain,
+          newTransaction(user, await chain.lastHash(), "adress2", 3)
+        );
+        await block.accept(chain, user);
+        await chain.addNewBlock(block);
+      }
 
-    //   await block.addTransaction(
-    //     chain,
-    //     newTransaction(user, await chain.lastHash(), "adress1", 5)
-    //   );
+      console.log(await chain.getBalance(user.stringAddress));
 
-    //   await block.addTransaction(
-    //     chain,
-    //     newTransaction(user, await chain.lastHash(), "adress2", 3)
-    //   );
-    //   await block.accept(chain, user);
-    //   await chain.addNewBlock(block);
-    // }
+      await close();
+    };
 
-    // await close();
+    await kek();
+    await kek();
   } catch (error) {
     console.error(error);
   }

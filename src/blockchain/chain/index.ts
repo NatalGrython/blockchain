@@ -1,4 +1,4 @@
-import { appendFile } from "fs/promises";
+import { access, appendFile } from "fs/promises";
 import { Repository } from "typeorm";
 import {
   GENESIS_BLOCK,
