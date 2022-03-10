@@ -4,14 +4,14 @@ import { START_PERCENT, STORAGE_REWARD } from "./constants";
 import { createHashSha } from "./utils";
 
 export class Transaction {
-  private sender: string;
-  private receiver: string;
-  private value: number;
-  private toStorage: number = 0;
-  private signature: Buffer;
-  private currentHash: string;
-  private randomBytes: Buffer;
-  private previousBlock: string;
+  public sender: string;
+  public receiver: string;
+  public value: number;
+  public toStorage: number = 0;
+  public signature: Buffer;
+  public currentHash: string;
+  public randomBytes: Buffer;
+  public previousBlock: string;
 
   constructor(
     lastHash: string,
@@ -27,18 +27,6 @@ export class Transaction {
     this.value = value;
   }
 
-  get transactionValue() {
-    return this.value;
-  }
-
-  get transactionSender() {
-    return this.sender;
-  }
-
-  get transactionReceiver() {
-    return this.receiver;
-  }
-
   sign(privateKey: string) {
     if (this.currentHash) {
       this.signature = sign(
@@ -47,14 +35,6 @@ export class Transaction {
         privateKey
       );
     }
-  }
-
-  set storage(value: number) {
-    this.toStorage = value;
-  }
-
-  get storage() {
-    return this.storage;
   }
 
   createTransactionHash() {
@@ -88,7 +68,7 @@ export const newTransaction = (
   );
 
   if (value > START_PERCENT) {
-    transaction.storage = STORAGE_REWARD;
+    transaction.toStorage = STORAGE_REWARD;
   }
   transaction.createTransactionHash();
   transaction.sign(user.private);

@@ -11,23 +11,11 @@ import { createConnectionDb } from "./utils";
 import { Block } from "../block";
 
 export class BlockChain {
-  private repository: Repository<BlockChainEntity>;
-  private blockIndex: number = 0;
+  public repository: Repository<BlockChainEntity>;
+  public index: number = 0;
 
   constructor(repository: Repository<BlockChainEntity>) {
     this.repository = repository;
-  }
-
-  set index(value: number) {
-    if (value < 0) {
-      this.blockIndex = 0;
-    } else {
-      this.blockIndex = value;
-    }
-  }
-
-  get index() {
-    return this.blockIndex;
   }
 
   async getBalance(address: string) {
@@ -43,10 +31,10 @@ export class BlockChain {
   async addNewBlock(block: Block) {
     const newBlock = new BlockChainEntity();
     newBlock.block = JSON.stringify(block);
-    newBlock.hash = block.hash;
+    newBlock.hash = block.currentHash;
     console.log(newBlock);
     await this.repository.save(newBlock);
-    this.blockIndex++;
+    this.index++;
   }
 
   async size() {
@@ -64,8 +52,8 @@ export const newChain = async (fileName: string, receiver: string) => {
 
     const genesisBlock = new Block(receiver, GENESIS_BLOCK);
 
-    genesisBlock.mapping = [STORAGE_CHAIN, STORAGE_VALUE];
-    genesisBlock.mapping = [receiver, GENESIS_REWARD];
+    genesisBlock.mappingData[STORAGE_CHAIN] = STORAGE_VALUE;
+    genesisBlock.mappingData[receiver] = GENESIS_REWARD;
 
     console.log(genesisBlock);
 

@@ -6,15 +6,15 @@ import { User } from "../user";
 import { DIFFICULTY } from "./constants";
 
 export class Block {
-  private currentHash: string;
-  private previousHash: string = "";
-  private nonce: number = 0;
-  private difficulty: number = 0;
-  private miner: string;
-  private signature: string = "";
-  private timestamp: number;
-  private transactions: Transaction[] = [];
-  private mappingData: Record<string, number>;
+  public currentHash: string;
+  public previousHash: string = "";
+  public nonce: number = 0;
+  public difficulty: number = 0;
+  public miner: string;
+  public signature: string = "";
+  public timestamp: number;
+  public transactions: Transaction[] = [];
+  public mappingData: Record<string, number>;
 
   constructor(miner: string, hash: string, difficulty?: number) {
     if (arguments.length > 2) {
@@ -29,22 +29,10 @@ export class Block {
     this.timestamp = Date.now();
   }
 
-  set mapping(value: [string, number]) {
-    this.mappingData[value[0]] = value[1];
-  }
-
-  getMappingValue(key: string) {
-    return this.mappingData[key];
-  }
-
-  get hash() {
-    return this.currentHash;
-  }
-
   async addBalance(chain: BlockChain, receiver: string, value: number) {
     let balanceChain: number;
     if (this.mappingData[receiver]) {
-      balanceChain = this.mapping[receiver];
+      balanceChain = this.mappingData[receiver];
     } else {
       balanceChain = await chain.getBalance(receiver);
     }
@@ -52,27 +40,26 @@ export class Block {
   }
 
   async addTransaction(chain: BlockChain, transactions: Transaction) {
-    if (transactions.transactionValue === 0) {
+    if (transactions.value === 0) {
       throw new Error("Transaction value 0");
     }
     if (
       this.transactions.length === 10 &&
-      transactions.transactionSender !== STORAGE_CHAIN
+      transactions.sender !== STORAGE_CHAIN
     ) {
       throw new Error("Len tx === lm");
     }
     let balanceChain: number;
-    const balanceTransaction =
-      transactions.transactionValue + transactions.storage;
-    if (this.mappingData[transactions.transactionSender]) {
-      balanceChain = this.mappingData[transactions.transactionSender];
+    const balanceTransaction = transactions.value + transactions.toStorage;
+    if (this.mappingData[transactions.sender]) {
+      balanceChain = this.mappingData[transactions.sender];
     } else {
-      balanceChain = await chain.getBalance(transactions.transactionSender);
+      balanceChain = await chain.getBalance(transactions.sender);
     }
 
     if (
-      transactions.transactionValue > START_PERCENT &&
-      transactions.storage !== STORAGE_REWARD
+      transactions.value > START_PERCENT &&
+      transactions.toStorage !== STORAGE_REWARD
     ) {
       throw new Error("Storage reward pass");
     }
@@ -81,24 +68,19 @@ export class Block {
       throw new Error("Balance >");
     }
 
-    this.mappingData[transactions.transactionSender] =
-      balanceChain - balanceTransaction;
+    this.mappingData[transactions.sender] = balanceChain - balanceTransaction;
 
-    await this.addBalance(
-      chain,
-      transactions.transactionReceiver,
-      transactions.transactionValue
-    );
+    await this.addBalance(chain, transactions.receiver, transactions.value);
 
-    await this.addBalance(chain, STORAGE_CHAIN, transactions.storage);
+    await this.addBalance(chain, STORAGE_CHAIN, transactions.toStorage);
 
     this.transactions.push(transactions);
   }
 
   accept(chain: BlockChain, user: User) {
-    if (this.transactionsValid(chain)) {
-      throw new Error("No valid");
-    }
+    // if (this.transactionsValid(chain)) {
+    //   throw new Error("No valid");
+    // }
   }
 }
 
