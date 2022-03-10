@@ -20,10 +20,12 @@ export class BlockChain {
 
   async getBalance(address: string) {
     const blocks = await this.repository.find();
+
     const block = blocks[this.index];
-    const serializeBlock = JSON.parse(block.block);
+    const serializeBlock = JSON.parse(block.block) as Block;
+
     if (serializeBlock.mappingData[address]) {
-      return serializeBlock.mappingData[address] as number;
+      return serializeBlock.mappingData[address];
     }
     return 0;
   }
@@ -32,7 +34,6 @@ export class BlockChain {
     const newBlock = new BlockChainEntity();
     newBlock.block = JSON.stringify(block);
     newBlock.hash = block.currentHash;
-    console.log(newBlock);
     await this.repository.save(newBlock);
     this.index++;
   }
@@ -40,6 +41,11 @@ export class BlockChain {
   async size() {
     const data = await this.repository.find();
     return data.length - 1;
+  }
+
+  async lastHash() {
+    const allBlocks = await this.repository.find();
+    return allBlocks[allBlocks.length - 1].hash;
   }
 }
 
@@ -55,7 +61,7 @@ export const newChain = async (fileName: string, receiver: string) => {
     genesisBlock.mappingData[STORAGE_CHAIN] = STORAGE_VALUE;
     genesisBlock.mappingData[receiver] = GENESIS_REWARD;
 
-    console.log(genesisBlock);
+    genesisBlock.currentHash = genesisBlock.hash();
 
     await blockchain.addNewBlock(genesisBlock);
 
@@ -71,8 +77,10 @@ export const loadChain = async (fileName: string) => {
     const db = await createConnectionDb(fileName);
     const blockchain = new BlockChain(db.getRepository(BlockChainEntity));
     blockchain.index = await blockchain.size();
-    await db.close();
-    return blockchain;
+
+    const close = () => db.close();
+
+    return { blockchain, close };
   } catch (error) {
     console.error(error);
     throw new Error("Chain is not loaded");

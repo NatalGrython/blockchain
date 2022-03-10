@@ -17,7 +17,6 @@ const deserializeMessage = <T>(data: Buffer) => {
 };
 
 const connectionListener = (wsClient: WebSocket) => {
-  console.log("kek");
   wsClient.on("message", (data) => {
     if (data instanceof Buffer) {
       const action = deserializeMessage<LoadingChainActionType>(data);

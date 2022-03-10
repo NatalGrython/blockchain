@@ -1,4 +1,4 @@
-import { randomBytes, sign } from "crypto";
+import { createPublicKey, KeyObject, randomBytes, sign, verify } from "crypto";
 import { User } from "../user";
 import { START_PERCENT, STORAGE_REWARD } from "./constants";
 import { createHashSha } from "./utils";
@@ -22,12 +22,12 @@ export class Transaction {
   ) {
     this.randomBytes = randomBytes;
     this.previousBlock = lastHash;
-    this.sender = user.address;
+    this.sender = user.stringAddress;
     this.receiver = to;
     this.value = value;
   }
 
-  sign(privateKey: string) {
+  sign(privateKey: KeyObject) {
     if (this.currentHash) {
       this.signature = sign(
         "sha256",
@@ -48,7 +48,20 @@ export class Transaction {
         toStorage: this.toStorage,
       })
     );
-    this.currentHash = currentHash;
+    return currentHash;
+  }
+
+  hashIsValid() {
+    return this.currentHash === this.createTransactionHash();
+  }
+
+  signIsValid() {
+    return verify(
+      "sha256",
+      Buffer.from(this.currentHash),
+      createPublicKey(this.sender),
+      this.signature
+    );
   }
 }
 
@@ -70,7 +83,9 @@ export const newTransaction = (
   if (value > START_PERCENT) {
     transaction.toStorage = STORAGE_REWARD;
   }
-  transaction.createTransactionHash();
+  transaction.currentHash = transaction.createTransactionHash();
+  console.log("kww");
   transaction.sign(user.private);
+  console.log("kww1");
   return transaction;
 };

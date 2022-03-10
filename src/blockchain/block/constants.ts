@@ -1,1 +1,2 @@
-export const DIFFICULTY = 20;
+export const DIFFICULTY = 4;
+export const TXS_LIMIT = 10;
