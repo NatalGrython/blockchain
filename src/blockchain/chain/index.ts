@@ -20,10 +20,10 @@ export class BlockChain {
     this.repository = repository;
   }
 
-  async getBalance(address: string, index: number = this.index) {
+  async getBalance(address: string, index?: number) {
     const blocks = await this.repository.find();
 
-    const block = blocks[index - 1];
+    const block = blocks[index - 2 ?? this.index];
     const serializeBlock = JSON.parse(block.block) as Block;
 
     if (serializeBlock.mappingData[address]) {
