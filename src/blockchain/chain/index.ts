@@ -1,4 +1,4 @@
-import { access, appendFile } from "fs/promises";
+import { appendFile, access } from "fs/promises";
 import { Repository } from "typeorm";
 import {
   GENESIS_BLOCK,
@@ -7,7 +7,7 @@ import {
   GENESIS_REWARD,
 } from "./constants";
 import { BlockChain as BlockChainEntity } from "../../entity/Blockchain";
-import { createConnectionDb } from "./utils";
+import { checkExistsFile, createConnectionDb } from "./utils";
 import { Block } from "../block";
 
 export class BlockChain {
@@ -51,6 +51,9 @@ export class BlockChain {
 
 export const newChain = async (fileName: string, receiver: string) => {
   try {
+    if (await checkExistsFile(fileName)) {
+      throw new Error("File exist");
+    }
     await appendFile(fileName, "");
     const db = await createConnectionDb(fileName);
 

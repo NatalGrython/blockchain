@@ -1,18 +1,10 @@
-import {
-  createHash,
-  createPublicKey,
-  KeyObject,
-  randomBytes,
-  sign,
-  verify,
-} from "crypto";
+import { KeyObject, randomBytes } from "crypto";
 import { BlockChain } from "../chain";
 import { STORAGE_CHAIN } from "../chain/constants";
 import { Transaction } from "../transactions";
 import { START_PERCENT, STORAGE_REWARD } from "../transactions/constants";
-import { createHashSha } from "../transactions/utils";
 import { User } from "../user";
-import { createKeyFromString } from "../user/utils";
+import { createHashSha, signStruct, verifyStruct } from "../utils";
 import { DIFFICULTY, TXS_LIMIT } from "./constants";
 
 export class Block {
@@ -183,7 +175,7 @@ export class Block {
   }
 
   sign(privateKey: KeyObject) {
-    return sign("sha256", Buffer.from(this.currentHash), privateKey);
+    return signStruct(privateKey, this.currentHash);
   }
 
   proof() {
@@ -211,15 +203,18 @@ export class Block {
       const tx = this.transactions[j];
 
       if (tx.sender === address) {
-        balanceSubBlock = balanceSubBlock + tx.value;
+        balanceSubBlock = balanceSubBlock + tx.value + tx.toStorage;
       }
       if (tx.receiver === address) {
         balanceAddBlock = balanceAddBlock + tx.value;
       }
-      if (tx.receiver === address || address === STORAGE_CHAIN) {
+      if (address === STORAGE_CHAIN) {
         balanceAddBlock = balanceAddBlock + tx.toStorage;
       }
     }
+
+    console.log(balanceChain, balanceAddBlock, balanceSubBlock);
+    console.log(this.mappingData[address]);
 
     if (
       balanceChain + balanceAddBlock - balanceSubBlock !==
@@ -273,12 +268,7 @@ export class Block {
   }
 
   signIsValid() {
-    return verify(
-      "sha256",
-      Buffer.from(this.currentHash),
-      createKeyFromString(this.miner, "public"),
-      this.signature
-    );
+    return verifyStruct(this.miner, this.currentHash, this.signature);
   }
 
   mappingIsValid() {

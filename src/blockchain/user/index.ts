@@ -1,4 +1,4 @@
-import { createPrivateKey, createPublicKey, KeyObject } from "crypto";
+import { KeyObject } from "crypto";
 import { createKeyFromString, createKeyPairs } from "./utils";
 
 export class User {
@@ -33,13 +33,11 @@ export class User {
 
 export const createUser = async () => {
   const { privateKey, publicKey } = await createKeyPairs();
-
   return new User(privateKey, publicKey);
 };
 
 export const loadUser = (address: string, purse: string) => {
   const publicKey = createKeyFromString(address, "public");
   const privateKey = createKeyFromString(purse, "private");
-
   return new User(privateKey, publicKey);
 };

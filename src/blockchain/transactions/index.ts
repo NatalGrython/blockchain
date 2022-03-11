@@ -1,8 +1,7 @@
-import { createPublicKey, KeyObject, randomBytes, sign, verify } from "crypto";
-import { User } from "../user";
-import { createKeyFromString } from "../user/utils";
+import { KeyObject, randomBytes } from "crypto";
 import { START_PERCENT, STORAGE_REWARD } from "./constants";
-import { createHashSha } from "./utils";
+import { User } from "../user";
+import { createHashSha, signStruct, verifyStruct } from "../utils";
 
 export class Transaction {
   public sender: string;
@@ -30,11 +29,7 @@ export class Transaction {
 
   sign(privateKey: KeyObject) {
     if (this.currentHash) {
-      this.signature = sign(
-        "sha256",
-        Buffer.from(this.currentHash),
-        privateKey
-      );
+      this.signature = signStruct(privateKey, this.currentHash);
     }
   }
 
@@ -57,12 +52,7 @@ export class Transaction {
   }
 
   signIsValid() {
-    return verify(
-      "sha256",
-      Buffer.from(this.currentHash),
-      createKeyFromString(this.sender, "public"),
-      this.signature
-    );
+    return verifyStruct(this.sender, this.currentHash, this.signature);
   }
 }
 
