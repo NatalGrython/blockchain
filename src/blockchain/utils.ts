@@ -11,6 +11,8 @@ export const verifyStruct = (
   signature: Buffer
 ) => {
   if (typeof publicKey === "string") {
+    console.log({ publicKey, data, signature });
+
     return verify(
       "sha256",
       Buffer.from(data),
@@ -18,6 +20,8 @@ export const verifyStruct = (
       signature
     );
   }
+  console.log({ publicKey, data, signature });
+
   return verify("sha256", Buffer.from(data), publicKey, signature);
 };
 

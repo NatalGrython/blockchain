@@ -96,12 +96,12 @@ export class Block {
 
     this.timestamp = Date.now();
     this.currentHash = this.hash();
-    this.signature = this.sign(user.private);
-
     this.proof();
+
+    this.signature = this.sign(user.private);
   }
 
-  async transactionsValid(chain: BlockChain) {
+  async transactionsValid(chain: BlockChain, index?: number) {
     const length = this.transactions.length;
     let plusStorage = 0;
     for (let i = 0; i < length; i++) {
@@ -150,10 +150,11 @@ export class Block {
         }
       }
 
-      if (!(await this.balanceIsValid(chain, tx.sender))) {
+      if (!(await this.balanceIsValid(chain, tx.sender, index))) {
         return false;
       }
-      if (!(await this.balanceIsValid(chain, tx.receiver))) {
+      if (!(await this.balanceIsValid(chain, tx.receiver, index))) {
+        console.log("tutaaaa");
         return false;
       }
     }
@@ -188,13 +189,13 @@ export class Block {
     }
   }
 
-  async balanceIsValid(chain: BlockChain, address: string) {
+  async balanceIsValid(chain: BlockChain, address: string, index?: number) {
     if (!this.mappingData[address]) {
       return false;
     }
 
     const length = this.transactions.length;
-    let balanceChain = await chain.getBalance(address);
+    let balanceChain = await chain.getBalance(address, index);
 
     let balanceSubBlock = 0;
     let balanceAddBlock = 0;
@@ -213,8 +214,13 @@ export class Block {
       }
     }
 
-    console.log(balanceChain, balanceAddBlock, balanceSubBlock);
-    console.log(this.mappingData[address]);
+    console.log({
+      balanceChain,
+      balanceSubBlock,
+      balanceAddBlock,
+      l: this.mappingData[address],
+      address,
+    });
 
     if (
       balanceChain + balanceAddBlock - balanceSubBlock !==
@@ -226,7 +232,7 @@ export class Block {
     return true;
   }
 
-  async isValid(chain: BlockChain) {
+  async isValid(chain: BlockChain, index?: number) {
     if (this === null) {
       return false;
     }
@@ -248,7 +254,7 @@ export class Block {
     if (!(await this.timeIsValid(chain, await chain.size()))) {
       return false;
     }
-    if (!(await this.transactionsValid(chain))) {
+    if (!(await this.transactionsValid(chain, index))) {
       return false;
     }
     return true;
