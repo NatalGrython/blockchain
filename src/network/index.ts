@@ -19,7 +19,7 @@ const deserializeMessage = <T>(data: Buffer) => {
 const connectionListener = (wsClient: WebSocket) => {
   wsClient.on("message", (data) => {
     if (data instanceof Buffer) {
-      const action = deserializeMessage<LoadingChainActionType>(data);
+      const action = deserializeMessage<Action>(data);
       switch (action.type) {
         case LOADING_CHAIN: {
           wsClient.send("LOADING_CHAIN");

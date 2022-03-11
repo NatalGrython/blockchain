@@ -1,4 +1,4 @@
-import { appendFile, access } from "fs/promises";
+import { appendFile } from "fs/promises";
 import { Repository } from "typeorm";
 import {
   GENESIS_BLOCK,
@@ -6,7 +6,7 @@ import {
   STORAGE_VALUE,
   GENESIS_REWARD,
 } from "./constants";
-import { BlockChain as BlockChainEntity } from "../../entity/Blockchain";
+import { BlockChain as BlockChainEntity } from "../entity/Blockchain";
 import { checkExistsFile, createConnectionDb } from "./utils";
 import { Block } from "../block";
 
@@ -46,6 +46,14 @@ export class BlockChain {
   async lastHash() {
     const allBlocks = await this.repository.find();
     return allBlocks[allBlocks.length - 1].hash;
+  }
+
+  async getAllChain() {
+    const allBlocks = await this.repository.find();
+    const serializeBlocks = allBlocks.map(
+      (item) => JSON.parse(item.block) as Block
+    );
+    return { blocks: serializeBlocks };
   }
 }
 
