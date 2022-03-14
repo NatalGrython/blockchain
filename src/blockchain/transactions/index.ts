@@ -15,14 +15,14 @@ export class Transaction {
 
   constructor(
     lastHash: string,
-    user: User,
+    sender: string,
     to: string,
     value: number,
     randomBytes: Buffer
   ) {
     this.randomBytes = randomBytes;
     this.previousBlock = lastHash;
-    this.sender = user.stringAddress;
+    this.sender = sender;
     this.receiver = to;
     this.value = value;
   }
@@ -65,7 +65,7 @@ export const newTransaction = (
   const transactionRandomBytes = randomBytes(20);
   const transaction = new Transaction(
     lastHash,
-    user,
+    user.stringAddress,
     to,
     value,
     transactionRandomBytes

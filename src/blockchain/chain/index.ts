@@ -7,10 +7,19 @@ import {
   GENESIS_REWARD,
 } from "./constants";
 import { BlockChain as BlockChainEntity } from "../entity/Blockchain";
-import { checkExistsFile, createConnectionDb } from "./utils";
-import { Block, createBlock } from "../block";
-import { newTransaction, Transaction } from "../transactions";
-import { User } from "../user";
+import {
+  checkExistsFile,
+  createConnectionDb,
+  deserializeBlock,
+  serializeBlock,
+} from "./utils";
+import { Block } from "../block";
+export {
+  deserializeBlock,
+  serializeBlock,
+  deserializeTransaction,
+  serializeTransaction,
+} from "./utils";
 
 export class BlockChain {
   public repository: Repository<BlockChainEntity>;
@@ -20,11 +29,11 @@ export class BlockChain {
     this.repository = repository;
   }
 
-  async getBalance(address: string, index?: number) {
+  async getBalance(address: string, size: number) {
     const blocks = await this.repository.find();
 
-    const block = blocks[index - 2 ?? this.index];
-    const serializeBlock = JSON.parse(block.block) as Block;
+    const block = blocks[size];
+    const serializeBlock = deserializeBlock(block.block);
 
     if (serializeBlock.mappingData[address]) {
       return serializeBlock.mappingData[address];
@@ -50,17 +59,10 @@ export class BlockChain {
     return allBlocks[allBlocks.length - 1].hash;
   }
 
-  async getBlockIndex(block: Block) {
-    const blockEntity = await this.repository.findOne({
-      where: { hash: block.currentHash },
-    });
-    return blockEntity.id;
-  }
-
   async getAllChain() {
     const allBlocks = await this.repository.find();
-    const serializeBlocks = allBlocks.map(
-      (item) => JSON.parse(item.block) as Block
+    const serializeBlocks = allBlocks.map((item) =>
+      deserializeBlock(item.block)
     );
     return { blocks: serializeBlocks };
   }
@@ -106,72 +108,3 @@ export const loadChain = async (fileName: string) => {
     throw new Error("Chain is not loaded");
   }
 };
-
-export const deserializeBlock = (deserializeBlock: any) => {
-  // console.error(stringBlock);
-  // const deserializeBlock = JSON.parse(stringBlock) as Block;
-  const block = createBlock(
-    deserializeBlock.miner,
-    deserializeBlock.previousHash
-  );
-
-  block.currentHash = deserializeBlock.currentHash;
-  block.difficulty = deserializeBlock.difficulty;
-  block.mappingData = deserializeBlock.mappingData;
-  block.miner = deserializeBlock.miner;
-  block.nonce = deserializeBlock.nonce;
-  block.previousHash = deserializeBlock.previousHash;
-  block.signature = deserializeBlock.signature
-    ? Buffer.from(deserializeBlock.signature, "base64")
-    : undefined;
-  block.timestamp = deserializeBlock.timestamp;
-  block.transactions = deserializeBlock.transactions.map(deserializeTx);
-
-  return block;
-};
-
-const deserializeTx = (tx: any) => {
-  //@ts-ignore
-  const newTx = new Transaction("", {
-    get addressString() {
-      return tx.sender;
-    },
-  });
-
-  newTx.currentHash = tx.currentHash;
-  newTx.previousBlock = tx.previousBlock;
-  (newTx.randomBytes = Buffer.from(tx.randomBytes, "base64")),
-    (newTx.receiver = tx.receiver);
-  newTx.sender = tx.sender;
-  newTx.signature = tx.signature
-    ? Buffer.from(tx.signature, "base64")
-    : undefined;
-
-  newTx.toStorage = tx.toStorage;
-  newTx.value = tx.value;
-  return newTx;
-};
-
-const serializeBlock = (block: Block) => {
-  const blockToJSON = {
-    ...block,
-    signature: block.signature ? block.signature.toString("base64") : undefined,
-    transactions: block.transactions.map((item) => ({
-      ...item,
-      signature: item.signature ? item.signature.toString("base64") : undefined,
-      randomBytes: item.randomBytes.toString("base64"),
-    })),
-  };
-  const blockString = JSON.stringify(blockToJSON);
-  return blockString;
-};
-
-// const serializeTransactions = (tx: any) => {
-//   const txToJSON = {
-//     ...tx,
-//     signature: tx.signature ? tx.signature.toString("base64") : undefined,
-//     randomBytes: tx.randomBytes.toString("base64"),
-//   };
-//   const txString = JSON.stringify(txToJSON);
-//   return txString;
-// };

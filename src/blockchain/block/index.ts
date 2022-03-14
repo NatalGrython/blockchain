@@ -32,7 +32,7 @@ export class Block {
     if (this.mappingData[receiver]) {
       balanceChain = this.mappingData[receiver];
     } else {
-      balanceChain = await chain.getBalance(receiver);
+      balanceChain = await chain.getBalance(receiver, await chain.size());
     }
     this.mappingData[receiver] = balanceChain + value;
   }
@@ -53,7 +53,10 @@ export class Block {
     if (this.mappingData[transactions.sender]) {
       balanceChain = this.mappingData[transactions.sender];
     } else {
-      balanceChain = await chain.getBalance(transactions.sender);
+      balanceChain = await chain.getBalance(
+        transactions.sender,
+        await chain.size()
+      );
     }
 
     if (
@@ -83,14 +86,11 @@ export class Block {
 
     const newTx = new Transaction(
       await chain.lastHash(),
-      user,
       STORAGE_CHAIN,
+      user.stringAddress,
       STORAGE_REWARD,
       randomBytes(20)
     );
-
-    newTx.sender = STORAGE_CHAIN;
-    newTx.receiver = user.stringAddress;
 
     await this.addTransaction(chain, newTx);
 
@@ -101,7 +101,7 @@ export class Block {
     this.signature = this.sign(user.private);
   }
 
-  async transactionsValid(chain: BlockChain, index?: number) {
+  async transactionsValid(chain: BlockChain) {
     const length = this.transactions.length;
     let plusStorage = 0;
     for (let i = 0; i < length; i++) {
@@ -150,11 +150,10 @@ export class Block {
         }
       }
 
-      if (!(await this.balanceIsValid(chain, tx.sender, index))) {
+      if (!(await this.balanceIsValid(chain, tx.sender))) {
         return false;
       }
-      if (!(await this.balanceIsValid(chain, tx.receiver, index))) {
-        console.log("tutaaaa");
+      if (!(await this.balanceIsValid(chain, tx.receiver))) {
         return false;
       }
     }
@@ -189,13 +188,13 @@ export class Block {
     }
   }
 
-  async balanceIsValid(chain: BlockChain, address: string, index?: number) {
+  async balanceIsValid(chain: BlockChain, address: string) {
     if (!this.mappingData[address]) {
       return false;
     }
 
     const length = this.transactions.length;
-    let balanceChain = await chain.getBalance(address, index);
+    let balanceChain = await chain.getBalance(address, await chain.size());
 
     let balanceSubBlock = 0;
     let balanceAddBlock = 0;
@@ -214,14 +213,6 @@ export class Block {
       }
     }
 
-    console.log({
-      balanceChain,
-      balanceSubBlock,
-      balanceAddBlock,
-      l: this.mappingData[address],
-      address,
-    });
-
     if (
       balanceChain + balanceAddBlock - balanceSubBlock !==
       this.mappingData[address]
@@ -232,7 +223,7 @@ export class Block {
     return true;
   }
 
-  async isValid(chain: BlockChain, index?: number) {
+  async isValid(chain: BlockChain) {
     if (this === null) {
       return false;
     }
@@ -254,7 +245,7 @@ export class Block {
     if (!(await this.timeIsValid(chain, await chain.size()))) {
       return false;
     }
-    if (!(await this.transactionsValid(chain, index))) {
+    if (!(await this.transactionsValid(chain))) {
       return false;
     }
     return true;

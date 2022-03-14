@@ -5,12 +5,12 @@ import { join } from "path";
 import {
   createBlock,
   createUser,
+  deserializeBlock,
   loadChain,
   loadUser,
   newChain,
   newTransaction,
 } from "../blockchain";
-import { deserializeBlock } from "../blockchain/chain";
 
 const PORT = 3000;
 const HOST = "localhost";
@@ -53,6 +53,7 @@ app.get("/chain", async (req, res) => {
     res.status(200).json({ ...(await blockchain.getAllChain()) });
     await close();
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error });
   }
 });
@@ -78,12 +79,6 @@ app.post("/transaction", async (req, res) => {
 
   await blockchain.addNewBlock(newBlock);
 
-  //   const file = await readFile(
-  //     join(__dirname, "..", "..", "addresses.json"),
-  //     "utf-8"
-  //   );
-  //   const fileJson = JSON.parse(file) as { addresses: string[] };
-
   res.status(201).json(newTx);
 
   await close();
@@ -92,13 +87,11 @@ app.post("/transaction", async (req, res) => {
 app.post("/block", async (req, res) => {
   const { block, fileName } = req.body;
 
-  const newd = deserializeBlock(block);
+  const currentBlock = deserializeBlock(block);
 
   const { blockchain, close } = await loadChain(fileName);
 
-  res.send(
-    await newd.isValid(blockchain, await blockchain.getBlockIndex(newd))
-  );
+  res.send(await currentBlock.isValid(blockchain));
   await close();
 });
 
