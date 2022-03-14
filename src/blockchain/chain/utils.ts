@@ -80,7 +80,25 @@ export const deserializeTransaction = (transaction: any) => {
   return currentTransaction;
 };
 
-export const serializeBlock = (block: Block) => {
+export const serializeBlock = (block: Block) =>
+  JSON.stringify(serializeBlockJSON(block));
+
+export const serializeTransaction = (transaction: Transaction) =>
+  JSON.stringify(serializeTransactionJSON(transaction));
+
+export const serializeTransactionJSON = (transaction: Transaction) => {
+  const transactionToJSON = {
+    ...transaction,
+    signature: transaction.signature
+      ? transaction.signature.toString("base64")
+      : undefined,
+    randomBytes: transaction.randomBytes.toString("base64"),
+  };
+
+  return transactionToJSON;
+};
+
+export const serializeBlockJSON = (block: Block) => {
   const blockToJSON = {
     ...block,
     signature: block.signature ? block.signature.toString("base64") : undefined,
@@ -90,18 +108,6 @@ export const serializeBlock = (block: Block) => {
       randomBytes: item.randomBytes.toString("base64"),
     })),
   };
-  const blockString = JSON.stringify(blockToJSON);
-  return blockString;
-};
 
-export const serializeTransaction = (transaction: Transaction) => {
-  const transactionToJSON = {
-    ...transaction,
-    signature: transaction.signature
-      ? transaction.signature.toString("base64")
-      : undefined,
-    randomBytes: transaction.randomBytes.toString("base64"),
-  };
-  const transactionString = JSON.stringify(transactionToJSON);
-  return transactionString;
+  return blockToJSON;
 };

@@ -261,7 +261,7 @@ export class Block {
       },
     });
 
-    return currentBlock.id !== index;
+    return currentBlock && currentBlock.id !== index;
   }
 
   signIsValid() {

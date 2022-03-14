@@ -10,6 +10,8 @@ import {
   loadUser,
   newChain,
   newTransaction,
+  serializeBlockJSON,
+  serializeTransactionJSON,
 } from "../blockchain";
 
 const PORT = 3000;
@@ -50,7 +52,9 @@ app.get("/chain", async (req, res) => {
   try {
     const { blockchain, close } = await loadChain(fileName);
 
-    res.status(200).json({ ...(await blockchain.getAllChain()) });
+    const { blocks } = await blockchain.getAllChain();
+
+    res.status(200).json({ blocks: blocks.map(serializeBlockJSON) });
     await close();
   } catch (error) {
     console.error(error);
@@ -77,9 +81,14 @@ app.post("/transaction", async (req, res) => {
 
   await newBlock.accept(blockchain, user);
 
-  await blockchain.addNewBlock(newBlock);
+  // await blockchain.addNewBlock(newBlock);
 
-  res.status(201).json(newTx);
+  res
+    .status(201)
+    .json({
+      newTx: serializeTransactionJSON(newTx),
+      newBlock: serializeBlockJSON(newBlock),
+    });
 
   await close();
 });

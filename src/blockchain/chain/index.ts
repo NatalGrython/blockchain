@@ -19,6 +19,8 @@ export {
   serializeBlock,
   deserializeTransaction,
   serializeTransaction,
+  serializeBlockJSON,
+  serializeTransactionJSON,
 } from "./utils";
 
 export class BlockChain {
