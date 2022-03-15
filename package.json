@@ -1,9 +1,9 @@
 {
-  "name": "blockchain",
-  "version": "0.0.1",
+  "name": "blockchain-library",
+  "version": "0.0.2",
   "description": "Blockchain library",
   "main": "build/lib/index.js",
-  "types": "build/lib/index.d.ts",
+  "types": "index.d.ts",
   "license": "MIT",
   "author": "Kirill Khoroshilov <altair.al-jabavi@yandex.ru>",
   "dependencies": {
@@ -13,7 +13,6 @@
   },
   "scripts": {
     "build": "tsc",
-    "copy": "cp ./index.d.ts ./build/lib",
-    "prepublish": "tsc && npm run copy"
+    "prepublish": "npm run build "
   }
 }
