@@ -1,11 +1,14 @@
+import { EventEmitter } from "events";
 import { Server } from "ws";
-import { loadChain, newChain, serializeBlockJSON } from "../blockchain";
-import { checkExistsFile } from "../blockchain/chain";
+import { loadChain, newChain, serializeBlockJSON } from "blockchain";
+import { checkExistsFile } from "blockchain";
 
 const HOST = "localhost";
 const PORT = 3000;
 
 const server = new Server({ port: PORT, host: HOST });
+
+const ee = new EventEmitter();
 
 const createBlockChain = async (fileName: string) => {
   if (!(await checkExistsFile(fileName))) {
@@ -38,6 +41,4 @@ server.on("connection", (socket) => {
   });
 
   socket.send("Lol");
-
-  console.log("connected");
 });
