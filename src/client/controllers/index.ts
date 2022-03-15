@@ -1,5 +1,10 @@
 import { Request, Response } from "express";
-import { CREATE_USER, GET_BALANCE, GET_FULL_CHAIN } from "../actions/constants";
+import {
+  CREATE_TRANSACTION,
+  CREATE_USER,
+  GET_BALANCE,
+  GET_FULL_CHAIN,
+} from "../actions/constants";
 import { getAddresses, getSocketInfo } from "../utils";
 
 type ParamsDictionary = { [key: string]: string };
@@ -81,6 +86,32 @@ export const createUser = async (req: Request, res: Response) => {
   }
 };
 
-const createTransaction = async (req: Request, res: Response) => {
-  const {} = req.body;
+export const createTransaction = async (req: Request, res: Response) => {
+  try {
+    const { address, privateKey, recipient, value } = req.body;
+
+    const addresses = await getAddresses();
+    const action = {
+      type: CREATE_TRANSACTION,
+      address,
+      privateKey,
+      recipient,
+      value,
+      addresses,
+    } as const;
+
+    let data = {};
+
+    for (const { host, port } of addresses) {
+      const transaction = await getSocketInfo(port, host, action);
+      data[`${host}:${port}`] = JSON.parse(transaction);
+    }
+
+    res.status(201).json(data);
+  } catch (error) {
+    res.status(500).json({
+      error: "Error",
+      message: error.message,
+    });
+  }
 };

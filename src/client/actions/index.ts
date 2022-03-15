@@ -1,4 +1,9 @@
-import { CREATE_USER, GET_BALANCE, GET_FULL_CHAIN } from "./constants";
+import {
+  CREATE_TRANSACTION,
+  CREATE_USER,
+  GET_BALANCE,
+  GET_FULL_CHAIN,
+} from "./constants";
 
 type GetBalanceAction = {
   type: typeof GET_BALANCE;
@@ -13,4 +18,20 @@ type CreateUserAction = {
   type: typeof CREATE_USER;
 };
 
-export type Action = GetBalanceAction | GetFullChain | CreateUserAction;
+type CreateTransactionAction = {
+  type: typeof CREATE_TRANSACTION;
+  address: string;
+  privateKey: string;
+  recipient: string;
+  value: number;
+  addresses: {
+    port: number;
+    host: string;
+  }[];
+};
+
+export type Action =
+  | GetBalanceAction
+  | GetFullChain
+  | CreateUserAction
+  | CreateTransactionAction;

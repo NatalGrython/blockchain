@@ -1,5 +1,10 @@
 import express from "express";
-import { createUser, getAllChain, getBalance } from "../controllers";
+import {
+  createTransaction,
+  createUser,
+  getAllChain,
+  getBalance,
+} from "../controllers";
 
 const router = express.Router();
 
@@ -9,6 +14,6 @@ router.get("/chain", getAllChain);
 
 router.get("/user", createUser);
 
-router.post("/transaction");
+router.post("/transaction", createTransaction);
 
 export default router;
