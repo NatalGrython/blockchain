@@ -1,0 +1,12 @@
+{
+  "name": "node",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^17.0.21",
+    "blockchain": "github:NatalGrython/blockchain#package",
+    "sqlite3": "^5.0.2",
+    "typescript": "^4.6.2"
+  }
+}
