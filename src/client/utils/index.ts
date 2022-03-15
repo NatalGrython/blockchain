@@ -10,11 +10,13 @@ export const getAddresses = async () => {
   return json.addresses;
 };
 
-export const getSocketInfo = <T>(port: number, host: string, action: Action) =>
-  new Promise<T>((resolve, reject) => {
+export const getSocketInfo = (port: number, host: string, action: Action) =>
+  new Promise<string>((resolve, reject) => {
     const client = new Socket();
 
-    client.connect(port, host);
+    client.connect(port, host, () => {
+      console.log("connect");
+    });
 
     client.on("data", (data) => {
       resolve(data.toString("utf-8"));
@@ -23,13 +25,5 @@ export const getSocketInfo = <T>(port: number, host: string, action: Action) =>
     client.on("error", (error) => {
       reject(error);
     });
-
-    client.setTimeout(5000);
-
-    client.on("timeout", () => {
-      client.end();
-      reject(new Error("Timeout"));
-    });
-
     client.write(JSON.stringify(action));
   });

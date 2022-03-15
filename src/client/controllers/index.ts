@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { GET_BALANCE } from "../actions/constants";
+import { CREATE_USER, GET_BALANCE, GET_FULL_CHAIN } from "../actions/constants";
 import { getAddresses, getSocketInfo } from "../utils";
 
 type ParamsDictionary = { [key: string]: string };
@@ -24,7 +24,7 @@ export const getBalance = async (req: RequestBalance, res: Response) => {
     } as const;
 
     for (const { host, port } of addresses) {
-      const balance = await getSocketInfo<string>(port, host, action);
+      const balance = await getSocketInfo(port, host, action);
       data[`${host}:${port}`] = balance;
     }
 
@@ -35,4 +35,52 @@ export const getBalance = async (req: RequestBalance, res: Response) => {
       message: error.message,
     });
   }
+};
+
+export const getAllChain = async (req: RequestBalance, res: Response) => {
+  try {
+    const addresses = await getAddresses();
+    const data = {};
+
+    const action = {
+      type: GET_FULL_CHAIN,
+    } as const;
+
+    for (const { host, port } of addresses) {
+      const fullChian = await getSocketInfo(port, host, action);
+      data[`${host}:${port}`] = JSON.parse(fullChian);
+    }
+
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(500).json({
+      error: "Error",
+      message: error.message,
+    });
+  }
+};
+
+export const createUser = async (req: Request, res: Response) => {
+  try {
+    const [address] = await getAddresses();
+
+    const action = {
+      type: CREATE_USER,
+    } as const;
+
+    const user = await getSocketInfo(address.port, address.host, action);
+
+    res.status(201).json({
+      user: JSON.parse(user),
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: "Error",
+      message: error.message,
+    });
+  }
+};
+
+const createTransaction = async (req: Request, res: Response) => {
+  const {} = req.body;
 };
