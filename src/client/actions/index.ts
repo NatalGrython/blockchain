@@ -3,6 +3,7 @@ import {
   CREATE_USER,
   GET_BALANCE,
   GET_FULL_CHAIN,
+  GET_OWNER,
 } from "./constants";
 
 type GetBalanceAction = {
@@ -30,8 +31,13 @@ type CreateTransactionAction = {
   }[];
 };
 
+type GetOwnerAction = {
+  type: typeof GET_OWNER;
+};
+
 export type Action =
   | GetBalanceAction
   | GetFullChain
   | CreateUserAction
-  | CreateTransactionAction;
+  | CreateTransactionAction
+  | GetOwnerAction;
