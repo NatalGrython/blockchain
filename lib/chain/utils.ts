@@ -3,10 +3,12 @@ import { createConnection } from "typeorm";
 import { Block } from "../block";
 import { BlockChainEntity } from "../entity/Blockchain";
 import { Transaction } from "../transactions";
+import { v4 } from "uuid";
 
 export const createConnectionDb = (fileName: string) =>
   createConnection({
     type: "sqlite",
+    name: v4(),
     database: fileName,
     entities: [BlockChainEntity],
     synchronize: true,
