@@ -1,6 +1,8 @@
 import { KeyObject, randomBytes } from "crypto";
 import { BlockChain } from "../chain";
 import { STORAGE_CHAIN } from "../chain/constants";
+import { createConnectionDb } from "../chain/utils";
+import { BlockChainEntity } from "../entity/Blockchain";
 import { Transaction } from "../transactions";
 import { START_PERCENT, STORAGE_REWARD } from "../transactions/constants";
 import { User } from "../user";
@@ -256,11 +258,16 @@ export class Block {
       return false;
     }
 
-    const currentBlock = await chain.repository.findOne({
+    const { getRepository, close } = await createConnectionDb(chain.fileName);
+    const repository = getRepository(BlockChainEntity);
+
+    const currentBlock = await repository.findOne({
       where: {
         hash: this.currentHash,
       },
     });
+
+    await close();
 
     return currentBlock && currentBlock.id !== index;
   }
@@ -297,11 +304,16 @@ export class Block {
       return false;
     }
 
-    const currentBlock = await chain.repository.findOne({
+    const { getRepository, close } = await createConnectionDb(chain.fileName);
+    const repository = getRepository(BlockChainEntity);
+
+    const currentBlock = await repository.findOne({
       where: {
         hash: this.currentHash,
       },
     });
+
+    await close();
     const block = JSON.parse(currentBlock.block) as Block;
     if (block.timestamp !== this.timestamp) {
       return false;

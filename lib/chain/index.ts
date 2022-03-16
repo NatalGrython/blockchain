@@ -22,6 +22,7 @@ export {
   serializeBlockJSON,
   serializeTransactionJSON,
   checkExistsFile,
+  createConnectionDb,
 } from "./utils";
 
 export class BlockChain {

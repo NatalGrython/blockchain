@@ -8,6 +8,7 @@ export {
   deserializeTransaction,
   serializeBlockJSON,
   serializeTransactionJSON,
+  createConnectionDb,
 } from "./chain";
 export { User, createUser, loadUser } from "./user";
 export { newTransaction, Transaction } from "./transactions";
