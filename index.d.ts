@@ -1,7 +1,7 @@
 import { KeyObject } from "crypto";
-import { Repository } from "typeorm";
+import { Connection, Repository } from "typeorm";
 
-declare class BlockChainEntity {
+export declare class BlockChainEntity {
   id: number;
   hash: string;
   block: string;
@@ -15,6 +15,9 @@ export declare class User {
   get address(): KeyObject;
   get private(): KeyObject;
 }
+export declare const createConnectionDb: (
+  fileName: string
+) => Promise<Connection>;
 export declare const createUser: () => Promise<User>;
 export declare const loadUser: (address: string, purse: string) => User;
 export declare class Transaction {
@@ -108,9 +111,9 @@ export declare const serializeBlockJSON: (block: Block) => {
   mappingData: Record<string, number>;
 };
 export declare class BlockChain {
-  repository: Repository<BlockChainEntity>;
+  fileName: string;
   index: number;
-  constructor(repository: Repository<BlockChainEntity>);
+  constructor(fileName: string);
   getBalance(address: string, size: number): Promise<number>;
   addNewBlock(block: Block): Promise<void>;
   size(): Promise<number>;
@@ -123,9 +126,6 @@ export declare const newChain: (
   fileName: string,
   receiver: string
 ) => Promise<void>;
-export declare const loadChain: (fileName: string) => Promise<{
-  blockchain: BlockChain;
-  close: () => Promise<void>;
-}>;
+export declare const loadChain: (fileName: string) => Promise<BlockChain>;
 
 export {};
