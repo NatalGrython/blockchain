@@ -79,7 +79,7 @@ export class Block {
     this.transactions.push(transactions);
   }
 
-  async accept(chain: BlockChain, user: User) {
+  async accept(chain: BlockChain, user: User, signal: AbortSignal) {
     if (!(await this.transactionsValid(chain))) {
       throw new Error("No valid");
     }
@@ -96,7 +96,7 @@ export class Block {
 
     this.timestamp = Date.now();
     this.currentHash = this.hash();
-    this.proof();
+    this.proof(signal);
 
     this.signature = this.sign(user.private);
   }
@@ -178,10 +178,11 @@ export class Block {
     return signStruct(privateKey, this.currentHash);
   }
 
-  proof() {
+  proof(signal: AbortSignal) {
     while (
       this.currentHash.substring(0, this.difficulty) !==
-      Array(this.difficulty).fill("0").join("")
+        Array(this.difficulty).fill("0").join("") &&
+      !signal.aborted
     ) {
       this.nonce++;
       this.currentHash = this.hash();
