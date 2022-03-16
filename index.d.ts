@@ -57,11 +57,11 @@ export declare class Block {
   constructor(miner: string, previousHash: string, difficulty?: number);
   addBalance(chain: BlockChain, receiver: string, value: number): Promise<void>;
   addTransaction(chain: BlockChain, transactions: Transaction): Promise<void>;
-  accept(chain: BlockChain, user: User): Promise<void>;
+  accept(chain: BlockChain, user: User, signal: AbortSignal): Promise<void>;
   transactionsValid(chain: BlockChain): Promise<boolean>;
   hash(): string;
   sign(privateKey: KeyObject): Buffer;
-  proof(): void;
+  proof(signal: AbortSignal): void;
   balanceIsValid(chain: BlockChain, address: string): Promise<boolean>;
   isValid(chain: BlockChain): Promise<boolean>;
   hashIsValid(chain: BlockChain, index: number): Promise<boolean>;
