@@ -1,5 +1,6 @@
 import { KeyObject, randomBytes } from "crypto";
 import { join } from "path";
+import { serializeBlockJSON } from "../..";
 import { BlockChain } from "../chain";
 import { STORAGE_CHAIN } from "../chain/constants";
 import { createConnectionDb } from "../chain/utils";
@@ -100,9 +101,15 @@ export class Block {
 
     this.timestamp = Date.now();
     this.currentHash = this.hash();
-    await this.proof(signal);
-
-    this.signature = this.sign(user.private);
+    try {
+      await this.proof(signal);
+    } catch (error) {
+      this.nonce = 0;
+      this.currentHash = this.hash();
+      throw new Error("Aborted");
+    } finally {
+      this.signature = this.sign(user.private);
+    }
   }
 
   async transactionsValid(chain: BlockChain, size: number) {
@@ -190,24 +197,19 @@ export class Block {
   }
 
   async proof(signal: AbortSignal) {
-    const blockJson = {
-      transactions: this.transactions.map((item) => item.currentHash),
-      mapping: this.mappingData,
-      miner: this.miner,
-      previousHash: this.previousHash,
-      difficulty: this.difficulty,
-      timestamp: this.timestamp,
-      nonce: this.nonce,
-    };
-    const nonce = await workerJob(
-      join(__dirname, "./proofOfWorkWorker.ts"),
+    //@ts-ignore
+    const { nonce, hash } = await workerJob(
+      join(__dirname, "./worker.js"),
       {
-        json: blockJson,
+        //@ts-ignore
+        block: serializeBlockJSON(this),
+        path: join(__dirname, "./proofOfWorkWorker.ts"),
       },
       signal
     );
 
     this.nonce = nonce as number;
+    this.currentHash = hash as string;
   }
 
   async balanceIsValid(chain: BlockChain, address: string, size: number) {

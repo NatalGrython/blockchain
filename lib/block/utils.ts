@@ -1,7 +1,8 @@
 import { Worker } from "worker_threads";
 
 type WorkerData = {
-  json: any;
+  block: any;
+  path: string;
 };
 
 export const workerJob = (
@@ -10,7 +11,13 @@ export const workerJob = (
   signal: AbortSignal
 ) =>
   new Promise((resolve, reject) => {
-    const worker = new Worker(workerPath, { workerData });
+    const worker = new Worker(workerPath, {
+      workerData,
+      stdout: true,
+      stdin: true,
+      stderr: true,
+    });
+
     if (signal.aborted) {
       reject("abort");
     }
@@ -22,7 +29,7 @@ export const workerJob = (
 
     worker.on("message", (message) => {
       if (message.type === "DONE") {
-        resolve(message.nonce);
+        resolve(message);
         worker.terminate();
       }
     });
