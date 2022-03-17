@@ -1,3 +1,5 @@
+import { newChain } from "..";
+
 export {
   BlockChain,
   newChain,

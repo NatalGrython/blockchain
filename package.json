@@ -1,6 +1,6 @@
 {
   "name": "blockchain-library",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Blockchain library",
   "main": "build/lib/index.js",
   "types": "index.d.ts",
@@ -8,6 +8,7 @@
   "author": "Kirill Khoroshilov <altair.al-jabavi@yandex.ru>",
   "dependencies": {
     "@types/node": "^17.0.21",
+    "sqlite3": "^5.0.2",
     "typeorm": "^0.2.45",
     "typescript": "^4.6.2",
     "uuid": "^8.3.2"

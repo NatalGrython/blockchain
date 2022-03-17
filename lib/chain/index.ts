@@ -1,5 +1,4 @@
 import { appendFile } from "fs/promises";
-import { Repository } from "typeorm";
 import {
   GENESIS_BLOCK,
   STORAGE_CHAIN,
