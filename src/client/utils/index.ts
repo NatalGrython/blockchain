@@ -19,19 +19,19 @@ export const getSocketInfo = (
   new Promise<string>((resolve, reject) => {
     const client = new Socket();
 
-    if (signal.aborted) {
-      resolve("fail Timeout");
-      client.end();
-    }
+    // if (signal.aborted) {
+    //   resolve("fail Timeout");
+    //   client.end();
+    // }
 
-    //@ts-ignore
-    signal.addEventListener("abort", () => {
-      resolve("fail Timeout");
-      client.end();
-    });
+    // //@ts-ignore
+    // signal.addEventListener("abort", () => {
+    //   resolve("fail Timeout");
+    //   client.end();
+    // });
 
     client.connect(port, host, () => {
-      console.log("connect");
+      console.log(`connect ${port} ${host} ${action.type}`);
     });
 
     client.on("data", (data) => {

@@ -41,21 +41,23 @@ export const getBalance = async (req: RequestBalance, res: Response) => {
       address,
     } as const;
 
-    for (const { host, port } of addresses) {
-      const abortController = new AbortController();
+    const requsts = Promise.all(
+      addresses.map(({ port, host }) => {
+        const abortController = new AbortController();
 
-      setTimeout(() => {
-        abortController.abort();
-      }, 5000);
+        setTimeout(() => {
+          abortController.abort();
+        }, 5000);
 
-      const balance = await getSocketInfo(
-        port,
-        host,
-        action,
-        abortController.signal
-      );
-      data[`${host}:${port}`] = parseMessage(balance);
-    }
+        return getSocketInfo(port, host, action, abortController.signal);
+      })
+    );
+
+    const response = await requsts;
+
+    response.forEach((item, index) => {
+      data[index] = parseMessage(item);
+    });
 
     res.status(200).json(data);
   } catch (error) {
@@ -68,11 +70,6 @@ export const getBalance = async (req: RequestBalance, res: Response) => {
 
 export const getAllChain = async (req: RequestBalance, res: Response) => {
   try {
-    const abortController = new AbortController();
-    setTimeout(() => {
-      abortController.abort();
-    }, 5000);
-
     const addresses = await getAddresses();
     const data = {};
 
@@ -80,15 +77,23 @@ export const getAllChain = async (req: RequestBalance, res: Response) => {
       type: GET_FULL_CHAIN,
     } as const;
 
-    for (const { host, port } of addresses) {
-      const fullChian = await getSocketInfo(
-        port,
-        host,
-        action,
-        abortController.signal
-      );
-      data[`${host}:${port}`] = parseMessage(fullChian);
-    }
+    const requsts = Promise.all(
+      addresses.map(({ port, host }) => {
+        const abortController = new AbortController();
+
+        setTimeout(() => {
+          abortController.abort();
+        }, 5000);
+
+        return getSocketInfo(port, host, action, abortController.signal);
+      })
+    );
+
+    const response = await requsts;
+
+    response.forEach((item, index) => {
+      data[index] = parseMessage(item);
+    });
 
     res.status(200).json(data);
   } catch (error) {
@@ -145,19 +150,23 @@ export const createTransaction = async (req: Request, res: Response) => {
 
     let data = {};
 
-    for (const { host, port } of addresses) {
-      const abortController = new AbortController();
-      setTimeout(() => {
-        abortController.abort();
-      }, 5000);
-      const transaction = await getSocketInfo(
-        port,
-        host,
-        action,
-        abortController.signal
-      );
-      data[`${host}:${port}`] = parseMessage(transaction);
-    }
+    const requsts = Promise.all(
+      addresses.map(({ port, host }) => {
+        const abortController = new AbortController();
+
+        setTimeout(() => {
+          abortController.abort();
+        }, 5000);
+
+        return getSocketInfo(port, host, action, abortController.signal);
+      })
+    );
+
+    const response = await requsts;
+
+    response.forEach((item, index) => {
+      data[index] = parseMessage(item);
+    });
 
     res.status(201).json(data);
   } catch (error) {
@@ -176,19 +185,23 @@ export const getOwner = async (req: Request, res: Response) => {
     } as const;
 
     let data = {};
-    for (const { host, port } of addresses) {
-      const abortController = new AbortController();
-      setTimeout(() => {
-        abortController.abort();
-      }, 5000);
-      const owner = await getSocketInfo(
-        port,
-        host,
-        action,
-        abortController.signal
-      );
-      data[`${host}:${port}`] = parseMessage(owner);
-    }
+    const requsts = Promise.all(
+      addresses.map(({ port, host }) => {
+        const abortController = new AbortController();
+
+        setTimeout(() => {
+          abortController.abort();
+        }, 5000);
+
+        return getSocketInfo(port, host, action, abortController.signal);
+      })
+    );
+
+    const response = await requsts;
+
+    response.forEach((item, index) => {
+      data[index] = parseMessage(item);
+    });
 
     res.status(201).json(data);
   } catch (error) {
