@@ -5,7 +5,9 @@
   "license": "MIT",
   "scripts": {
     "dev": "cross-env PORT=3000 DB='index.sqlite' OWNER='owner.json' ts-node ./src/index.ts",
-    "dev1": "cross-env PORT=3001 DB='kek.sqlite' OWNER='owner1.json' ts-node ./src/index.ts"
+    "dev1": "cross-env PORT=3001 DB='index1.sqlite' OWNER='owner1.json' ts-node ./src/index.ts",
+    "dev2": "cross-env PORT=3002 DB='index2.sqlite' OWNER='owner2.json' ts-node ./src/index.ts",
+    "dev3": "cross-env PORT=3003 DB='index3.sqlite' OWNER='owner3.json' ts-node ./src/index.ts"
   },
   "dependencies": {
     "blockchain-library": "^0.0.11",
