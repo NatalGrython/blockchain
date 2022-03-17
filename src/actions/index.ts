@@ -14,69 +14,18 @@ import {
   BlockChainEntity,
 } from "blockchain-library";
 import { getSocketInfo } from "../utils";
-
-const GET_BALANCE = "GET_BALANCE";
-const GET_FULL_CHAIN = "GET_FULL_CHAIN";
-const CREATE_USER = "CREATE_USER";
-const CREATE_TRANSACTION = "CREATE_TRANSACTION";
-const PUSH_BLOCK = "PUSH_BLOCK";
-const GET_BLOCK = "GET_BLOCK";
-const GET_OWNER = "GET_OWNER";
+import {
+  PUSH_BLOCK,
+  GET_BLOCK,
+  GET_BALANCE,
+  GET_FULL_CHAIN,
+  CREATE_USER,
+  CREATE_TRANSACTION,
+  GET_OWNER,
+} from "./constants";
+import { Action } from "./types";
 
 let globalBlock: Block;
-
-type GetBalanceAction = {
-  type: typeof GET_BALANCE;
-  address: string;
-};
-
-type GetFullChainAction = {
-  type: typeof GET_FULL_CHAIN;
-};
-
-type CreateUserAction = {
-  type: typeof CREATE_USER;
-};
-
-type PushBlockAction = {
-  type: typeof PUSH_BLOCK;
-  block: string;
-  size: number;
-  addressNode: {
-    port: number;
-    host: string;
-  };
-};
-
-type CreateTransactionAction = {
-  type: typeof CREATE_TRANSACTION;
-  address: string;
-  privateKey: string;
-  recipient: string;
-  value: number;
-  addresses: {
-    port: number;
-    host: string;
-  }[];
-};
-
-type GetBlockAction = {
-  type: typeof GET_BLOCK;
-  index: number;
-};
-
-type GetOwnerAction = {
-  type: typeof GET_OWNER;
-};
-
-type Action =
-  | GetBalanceAction
-  | GetFullChainAction
-  | CreateUserAction
-  | CreateTransactionAction
-  | PushBlockAction
-  | GetBlockAction
-  | GetOwnerAction;
 
 let controller = new AbortController();
 let isMining = false;
@@ -115,10 +64,10 @@ const pushBlockToNet = async (
       size,
       addressNode: {
         host: process.env.HOST || "localhost",
-        port: process.env.PORT || 3000,
+        port: Number(process.env.PORT) || 3000,
       },
-    };
-    console.log(action);
+    } as const;
+
     await getSocketInfo(port, host, action);
   }
 };
@@ -239,14 +188,13 @@ const compareBlocks = async (
 };
 
 const addBlock = async (
-  block: string,
+  block: ReturnType<typeof serializeBlockJSON>,
   chain: BlockChain,
   size: number,
   addressNode: { port: number; host: string },
   owner: User
 ) => {
   const currentBlock = deserializeBlock(block);
-  console.log(addressNode);
 
   if (!(await currentBlock.isValid(chain))) {
     const currentSize = await chain.size();
