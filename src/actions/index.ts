@@ -6,8 +6,12 @@ import {
   deserializeBlock,
   loadUser,
   newTransaction,
+  serializeBlock,
   serializeBlockJSON,
   serializeTransactionJSON,
+  User,
+  createConnectionDb,
+  BlockChainEntity,
 } from "blockchain-library";
 import { getSocketInfo } from "../utils";
 
@@ -16,6 +20,8 @@ const GET_FULL_CHAIN = "GET_FULL_CHAIN";
 const CREATE_USER = "CREATE_USER";
 const CREATE_TRANSACTION = "CREATE_TRANSACTION";
 const PUSH_BLOCK = "PUSH_BLOCK";
+const GET_BLOCK = "GET_BLOCK";
+const GET_OWNER = "GET_OWNER";
 
 let globalBlock: Block;
 
@@ -54,23 +60,35 @@ type CreateTransactionAction = {
   }[];
 };
 
+type GetBlockAction = {
+  type: typeof GET_BLOCK;
+  index: number;
+};
+
+type GetOwnerAction = {
+  type: typeof GET_OWNER;
+};
+
 type Action =
   | GetBalanceAction
   | GetFullChainAction
   | CreateUserAction
   | CreateTransactionAction
-  | PushBlockAction;
+  | PushBlockAction
+  | GetBlockAction
+  | GetOwnerAction;
+
+let controller = new AbortController();
+let isMining = false;
 
 const getBalance = async (address: string, chain: BlockChain) => {
   const balance = await chain.getBalance(address, await chain.size());
-  globalBlock = createBlock("Universy", await chain.lastHash());
   return String(balance);
 };
 
 const getFullChain = async (chain: BlockChain) => {
   const { blocks } = await chain.getAllChain();
   const blocksJSon = blocks.map(serializeBlockJSON);
-  globalBlock = createBlock("Universy", await chain.lastHash());
   return JSON.stringify(blocksJSon);
 };
 
@@ -88,15 +106,19 @@ const pushBlockToNet = async (
   size: number
 ) => {
   for (const { host, port } of addresses) {
+    if (String(port) === process.env.PORT) {
+      continue;
+    }
     const action = {
       type: PUSH_BLOCK,
       block: serializeBlockJSON(block),
       size,
       addressNode: {
-        host: "localhost",
-        port: process.env.PORT,
+        host: process.env.HOST || "localhost",
+        port: process.env.PORT || 3000,
       },
     };
+    console.log(action);
     await getSocketInfo(port, host, action);
   }
 };
@@ -107,16 +129,18 @@ const createTransaction = async ({
   recipient,
   value,
   chain,
-  block,
+  owner,
   addressesNode,
+  signal,
 }: {
   address: string;
   privateKey: string;
   recipient: string;
   value: number;
   chain: BlockChain;
-  block: Block;
   addressesNode: { port: number; host: string }[];
+  signal: AbortSignal;
+  owner: User;
 }) => {
   const user = loadUser(address, privateKey);
   const transaction = newTransaction(
@@ -125,17 +149,35 @@ const createTransaction = async ({
     recipient,
     value
   );
-  if (block.transactions.length + 1 > 10) {
-    return "fail";
-  } else if (block.transactions.length + 1 === 10) {
-    await block.addTransaction(chain, transaction);
-    await block.accept(chain, user);
-    await chain.addNewBlock(block);
-    await pushBlockToNet(addressesNode, block, await chain.size());
-  } else {
-    await block.addTransaction(chain, transaction);
-    return JSON.stringify(serializeTransactionJSON(transaction));
+
+  if (!globalBlock) {
+    globalBlock = createBlock(owner.stringAddress, await chain.lastHash());
   }
+
+  if (globalBlock.transactions.length + 1 > 10) {
+    return "fail";
+  } else if (globalBlock.transactions.length + 1 === 10) {
+    try {
+      await globalBlock.addTransaction(chain, transaction);
+      isMining = true;
+      await globalBlock.accept(chain, user, signal);
+      isMining = false;
+      await chain.addNewBlock(globalBlock);
+      await pushBlockToNet(addressesNode, globalBlock, await chain.size());
+      globalBlock = createBlock(owner.stringAddress, await chain.lastHash());
+    } catch (error) {
+      //@ts-ignore
+      return `fail${error.message}`;
+    }
+  } else {
+    try {
+      await globalBlock.addTransaction(chain, transaction);
+    } catch (error) {
+      //@ts-ignore
+      return `fail${error.message}`;
+    }
+  }
+  return JSON.stringify(serializeTransactionJSON(transaction));
 };
 
 const compareBlocks = async (
@@ -143,33 +185,107 @@ const compareBlocks = async (
     port: number;
     host: string;
   },
-  size: number
-) => {};
+  size: number,
+  chain: BlockChain,
+  owner: User
+) => {
+  const action = {
+    type: GET_BLOCK,
+    index: 0,
+  } as const;
+
+  const block = await getSocketInfo(addressNode.port, addressNode.host, action);
+
+  const genesis = deserializeBlock(block);
+
+  if (!(genesis.currentHash === genesis.hash())) {
+    return;
+  }
+
+  const { getRepository, close } = await createConnectionDb(chain.fileName);
+  const repository = getRepository(BlockChainEntity);
+
+  await repository.clear();
+  await close();
+
+  await chain.addNewBlock(genesis);
+
+  for (let i = 0; i < size; i++) {
+    const action = {
+      type: GET_BLOCK,
+      index: i,
+    } as const;
+    const stringCurrentBlock = await getSocketInfo(
+      addressNode.port,
+      addressNode.host,
+      action
+    );
+    const currentBlock = deserializeBlock(stringCurrentBlock);
+
+    if (!(await currentBlock.isValid(chain))) {
+      return;
+    }
+
+    chain.addNewBlock(currentBlock);
+  }
+
+  globalBlock = createBlock(owner.stringAddress, await chain.lastHash());
+
+  if (isMining) {
+    controller.abort();
+    controller = new AbortController();
+    isMining = false;
+  }
+};
 
 const addBlock = async (
   block: string,
   chain: BlockChain,
   size: number,
-  addressNode: { port: number; host: string }
+  addressNode: { port: number; host: string },
+  owner: User
 ) => {
   const currentBlock = deserializeBlock(block);
+  console.log(addressNode);
 
   if (!(await currentBlock.isValid(chain))) {
     const currentSize = await chain.size();
     if (currentSize < size) {
-      compareBlocks(addressNode, size);
+      compareBlocks(addressNode, size, chain, owner);
       return "ok";
     }
     return "fail";
   }
 
   await chain.addNewBlock(currentBlock);
-  globalBlock = createBlock("Universy", await chain.lastHash());
+  globalBlock = createBlock(owner.stringAddress, await chain.lastHash());
+
+  if (isMining) {
+    controller.abort();
+    controller = new AbortController();
+    isMining = false;
+  }
 
   return "ok";
 };
 
-export const reduceAction = (action: Action, chain: BlockChain) => {
+const getBlock = async (chain: BlockChain, index: number) => {
+  const { blocks } = await chain.getAllChain();
+  return serializeBlock(blocks[index]);
+};
+
+const getOwner = (user: User) => {
+  return JSON.stringify({
+    address: user.stringAddress,
+    privateKey: user.stringPrivate,
+  });
+};
+
+export const reduceAction = (
+  action: Action,
+  chain: BlockChain,
+  owner: User
+) => {
   switch (action.type) {
     case GET_BALANCE:
       return getBalance(action.address, chain);
@@ -185,10 +301,21 @@ export const reduceAction = (action: Action, chain: BlockChain) => {
         recipient: action.recipient,
         value: action.value,
         chain,
-        block: globalBlock,
+        owner,
+        signal: controller.signal,
       });
     case PUSH_BLOCK:
-      return addBlock(action.block, chain, action.size, action.addressNode);
+      return addBlock(
+        action.block,
+        chain,
+        action.size,
+        action.addressNode,
+        owner
+      );
+    case GET_BLOCK:
+      return getBlock(chain, action.index);
+    case GET_OWNER:
+      return getOwner(owner);
     default:
       return "Error";
   }
