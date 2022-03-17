@@ -54,23 +54,22 @@ const pushBlockToNet = async (
   block: Block,
   size: number
 ) => {
-  for (const { host, port } of addresses) {
-    if (port === Number(process.env.PORT)) {
-      continue;
-    }
-
-    const action = {
-      type: PUSH_BLOCK,
-      block: serializeBlockJSON(block),
-      size,
-      addressNode: {
-        host: process.env.HOST || "localhost",
-        port: Number(process.env.PORT) || 3000,
-      },
-    } as const;
-
-    const res = await getSocketInfo(port, host, action);
-  }
+  const action = {
+    type: PUSH_BLOCK,
+    block: serializeBlockJSON(block),
+    size,
+    addressNode: {
+      host: "localhost",
+      port: Number(process.env.PORT),
+    },
+  } as const;
+  const requsts = Promise.all(
+    addresses
+      .filter((item) => item.port !== Number(process.env.PORT))
+      .map(({ host, port }) => getSocketInfo(port, host, action))
+  );
+  const results = await requsts;
+  console.log({ results });
 };
 
 const createTransaction = async ({
@@ -104,7 +103,7 @@ const createTransaction = async ({
     globalBlock = createBlock(owner.stringAddress, await chain.lastHash());
   }
 
-  if (globalBlock.transactions.length + 1 > 10) {
+  if (globalBlock.transactions.length + 1 > 4) {
     return "fail";
   } else if (globalBlock.transactions.length + 1 === 4) {
     try {
@@ -117,17 +116,17 @@ const createTransaction = async ({
       globalBlock = createBlock(owner.stringAddress, await chain.lastHash());
     } catch (error) {
       //@ts-ignore
-
       globalBlock = createBlock(owner.stringAddress, await chain.lastHash());
-
       return `fail ${error.message}`;
     }
   } else {
     try {
+      console.log(transaction.currentHash);
       await globalBlock.addTransaction(chain, transaction);
     } catch (error) {
       //@ts-ignore
-      return `fail${error.message}`;
+      console.log("worked");
+      return `fail ${error.message}`;
     }
   }
   return JSON.stringify(serializeTransactionJSON(transaction));
@@ -198,6 +197,7 @@ const addBlock = async (
   addressNode: { port: number; host: string },
   owner: User
 ) => {
+  console.log("PUSHED", addressNode.port);
   const currentBlock = deserializeBlock(block);
 
   if (!(await currentBlock.isValid(chain, await chain.size()))) {
