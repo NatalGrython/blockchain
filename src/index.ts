@@ -10,22 +10,23 @@ import { parseAction, reduceAction } from "./actions";
 import { isFileExist } from "./utils";
 import { appendFile, readFile } from "fs/promises";
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 // const HOST = process.env.HOST || "localhost";
-const DB = process.env.DB || "index.sqlite";
+const DB = process.env.DB;
+const OWNER = process.env.OWNER;
 
 const createOrLoadOwner = async () => {
-  if (!(await isFileExist("owner.json"))) {
+  if (!(await isFileExist(OWNER))) {
     const user = await createUser();
     const userData = JSON.stringify({
       address: user.stringAddress,
       privateKey: user.stringPrivate,
     });
-    await appendFile("owner.json", userData, "utf-8");
+    await appendFile(OWNER, userData, "utf-8");
     return user;
   }
 
-  const file = await readFile("owner.json", "utf-8");
+  const file = await readFile(OWNER, "utf-8");
 
   const userJSON = JSON.parse(file);
 

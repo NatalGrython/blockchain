@@ -55,9 +55,10 @@ const pushBlockToNet = async (
   size: number
 ) => {
   for (const { host, port } of addresses) {
-    if (String(port) === process.env.PORT) {
+    if (port === Number(process.env.PORT)) {
       continue;
     }
+
     const action = {
       type: PUSH_BLOCK,
       block: serializeBlockJSON(block),
@@ -68,7 +69,7 @@ const pushBlockToNet = async (
       },
     } as const;
 
-    await getSocketInfo(port, host, action);
+    const res = await getSocketInfo(port, host, action);
   }
 };
 
@@ -105,7 +106,7 @@ const createTransaction = async ({
 
   if (globalBlock.transactions.length + 1 > 10) {
     return "fail";
-  } else if (globalBlock.transactions.length + 1 === 10) {
+  } else if (globalBlock.transactions.length + 1 === 4) {
     try {
       await globalBlock.addTransaction(chain, transaction);
       isMining = true;
@@ -116,7 +117,10 @@ const createTransaction = async ({
       globalBlock = createBlock(owner.stringAddress, await chain.lastHash());
     } catch (error) {
       //@ts-ignore
-      return `fail${error.message}`;
+
+      globalBlock = createBlock(owner.stringAddress, await chain.lastHash());
+
+      return `fail ${error.message}`;
     }
   } else {
     try {
@@ -151,15 +155,15 @@ const compareBlocks = async (
     return;
   }
 
-  const { getRepository, close } = await createConnectionDb(chain.fileName);
-  const repository = getRepository(BlockChainEntity);
+  const connection = await createConnectionDb(chain.fileName);
+  const repository = connection.getRepository(BlockChainEntity);
 
   await repository.clear();
-  await close();
+  await connection.close();
 
   await chain.addNewBlock(genesis);
 
-  for (let i = 0; i < size; i++) {
+  for (let i = 1; i < size; i++) {
     const action = {
       type: GET_BLOCK,
       index: i,
@@ -171,11 +175,11 @@ const compareBlocks = async (
     );
     const currentBlock = deserializeBlock(stringCurrentBlock);
 
-    if (!(await currentBlock.isValid(chain))) {
+    if (!(await currentBlock.isValid(chain, i))) {
       return;
     }
 
-    chain.addNewBlock(currentBlock);
+    await chain.addNewBlock(currentBlock);
   }
 
   globalBlock = createBlock(owner.stringAddress, await chain.lastHash());
@@ -196,10 +200,10 @@ const addBlock = async (
 ) => {
   const currentBlock = deserializeBlock(block);
 
-  if (!(await currentBlock.isValid(chain))) {
+  if (!(await currentBlock.isValid(chain, await chain.size()))) {
     const currentSize = await chain.size();
     if (currentSize < size) {
-      compareBlocks(addressNode, size, chain, owner);
+      await compareBlocks(addressNode, size, chain, owner);
       return "ok";
     }
     return "fail";

@@ -4,11 +4,11 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "dev": "ts-node ./src/index.ts",
-    "dev1": "cross-env PORT=3001 DB='kek.sqlite' ts-node ./src/index.ts"
+    "dev": "cross-env PORT=3000 DB='index.sqlite' OWNER='owner.json' ts-node ./src/index.ts",
+    "dev1": "cross-env PORT=3001 DB='kek.sqlite' OWNER='owner1.json' ts-node ./src/index.ts"
   },
   "dependencies": {
-    "blockchain-library": "^0.0.9",
+    "blockchain-library": "^0.0.11",
     "cross-env": "^7.0.3",
     "sqlite3": "^5.0.2",
     "ts-node": "^10.7.0",

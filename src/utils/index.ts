@@ -16,7 +16,7 @@ export const getSocketInfo = (port: number, host: string, action: Action) =>
     const client = new Socket();
 
     client.connect(port, host, () => {
-      console.log("connect" + port + host);
+      console.log("connect " + port + host);
     });
 
     client.on("data", (data) => {
