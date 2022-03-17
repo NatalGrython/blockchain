@@ -33,55 +33,55 @@ export class BlockChain {
   }
 
   async getBalance(address: string, size: number) {
-    const { getRepository, close } = await createConnectionDb(this.fileName);
-    const repository = getRepository(BlockChainEntity);
+    const connection = await createConnectionDb(this.fileName);
+    const repository = connection.getRepository(BlockChainEntity);
     const blocks = await repository.find();
 
     const block = blocks[size];
     const serializeBlock = deserializeBlock(block.block);
 
+    await connection.close();
     if (serializeBlock.mappingData[address]) {
       return serializeBlock.mappingData[address];
     }
-    await close();
     return 0;
   }
 
   async addNewBlock(block: Block) {
-    const { getRepository, close } = await createConnectionDb(this.fileName);
-    const repository = getRepository(BlockChainEntity);
+    const connection = await createConnectionDb(this.fileName);
+    const repository = connection.getRepository(BlockChainEntity);
     const newBlock = new BlockChainEntity();
     newBlock.block = serializeBlock(block);
     newBlock.hash = block.currentHash;
     await repository.save(newBlock);
     this.index++;
-    await close();
+    await connection.close();
   }
 
   async size() {
-    const { getRepository, close } = await createConnectionDb(this.fileName);
-    const repository = getRepository(BlockChainEntity);
+    const connection = await createConnectionDb(this.fileName);
+    const repository = connection.getRepository(BlockChainEntity);
     const data = await repository.find();
-    await close();
+    await connection.close();
     return data.length - 1;
   }
 
   async lastHash() {
-    const { getRepository, close } = await createConnectionDb(this.fileName);
-    const repository = getRepository(BlockChainEntity);
+    const connection = await createConnectionDb(this.fileName);
+    const repository = connection.getRepository(BlockChainEntity);
     const allBlocks = await repository.find();
-    await close();
+    await connection.close();
     return allBlocks[allBlocks.length - 1].hash;
   }
 
   async getAllChain() {
-    const { getRepository, close } = await createConnectionDb(this.fileName);
-    const repository = getRepository(BlockChainEntity);
+    const connection = await createConnectionDb(this.fileName);
+    const repository = connection.getRepository(BlockChainEntity);
     const allBlocks = await repository.find();
     const serializeBlocks = allBlocks.map((item) =>
       deserializeBlock(item.block)
     );
-    await close();
+    await connection.close();
     return { blocks: serializeBlocks };
   }
 }

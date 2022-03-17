@@ -258,8 +258,8 @@ export class Block {
       return false;
     }
 
-    const { getRepository, close } = await createConnectionDb(chain.fileName);
-    const repository = getRepository(BlockChainEntity);
+    const connection = await createConnectionDb(chain.fileName);
+    const repository = connection.getRepository(BlockChainEntity);
 
     const currentBlock = await repository.findOne({
       where: {
@@ -267,7 +267,7 @@ export class Block {
       },
     });
 
-    await close();
+    await connection.close();
 
     return currentBlock && currentBlock.id !== index;
   }
@@ -304,8 +304,8 @@ export class Block {
       return false;
     }
 
-    const { getRepository, close } = await createConnectionDb(chain.fileName);
-    const repository = getRepository(BlockChainEntity);
+    const connection = await createConnectionDb(chain.fileName);
+    const repository = connection.getRepository(BlockChainEntity);
 
     const currentBlock = await repository.findOne({
       where: {
@@ -313,7 +313,7 @@ export class Block {
       },
     });
 
-    await close();
+    await connection.close();
     const block = JSON.parse(currentBlock.block) as Block;
     if (block.timestamp !== this.timestamp) {
       return false;
