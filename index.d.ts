@@ -66,7 +66,7 @@ export declare class Block {
   sign(privateKey: KeyObject): Buffer;
   proof(signal: AbortSignal): void;
   balanceIsValid(chain: BlockChain, address: string): Promise<boolean>;
-  isValid(chain: BlockChain): Promise<boolean>;
+  isValid(chain: BlockChain, size: number): Promise<boolean>;
   hashIsValid(chain: BlockChain, index: number): Promise<boolean>;
   signIsValid(): boolean;
   mappingIsValid(): boolean;

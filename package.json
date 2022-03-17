@@ -2,7 +2,7 @@
   "name": "blockchain-library",
   "version": "0.0.11",
   "description": "Blockchain library",
-  "main": "./build/lib/index.js",
+  "main": "./lib/index.ts",
   "types": "index.d.ts",
   "license": "MIT",
   "author": "Kirill Khoroshilov <altair.al-jabavi@yandex.ru>",

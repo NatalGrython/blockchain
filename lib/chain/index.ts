@@ -37,7 +37,7 @@ export class BlockChain {
     const repository = connection.getRepository(BlockChainEntity);
     const blocks = await repository.find();
 
-    const block = blocks[size];
+    const block = blocks[size - 1];
     const serializeBlock = deserializeBlock(block.block);
 
     await connection.close();
@@ -63,15 +63,16 @@ export class BlockChain {
     const repository = connection.getRepository(BlockChainEntity);
     const data = await repository.find();
     await connection.close();
-    return data.length - 1;
+    return data.length;
   }
 
   async lastHash() {
     const connection = await createConnectionDb(this.fileName);
     const repository = connection.getRepository(BlockChainEntity);
     const allBlocks = await repository.find();
+    const hash = allBlocks[allBlocks.length - 1].hash;
     await connection.close();
-    return allBlocks[allBlocks.length - 1].hash;
+    return hash;
   }
 
   async getAllChain() {

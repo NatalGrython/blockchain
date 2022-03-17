@@ -82,7 +82,7 @@ export class Block {
   }
 
   async accept(chain: BlockChain, user: User, signal: AbortSignal) {
-    if (!(await this.transactionsValid(chain))) {
+    if (!(await this.transactionsValid(chain, await chain.size()))) {
       throw new Error("No valid");
     }
 
@@ -103,7 +103,7 @@ export class Block {
     this.signature = this.sign(user.private);
   }
 
-  async transactionsValid(chain: BlockChain) {
+  async transactionsValid(chain: BlockChain, size: number) {
     const length = this.transactions.length;
     let plusStorage = 0;
     for (let i = 0; i < length; i++) {
@@ -145,17 +145,24 @@ export class Block {
         }
       } else {
         if (!tx.hashIsValid()) {
+          console.log("hash tx");
           return false;
         }
         if (!tx.signIsValid()) {
+          console.log("sign tx");
+
           return false;
         }
       }
 
-      if (!(await this.balanceIsValid(chain, tx.sender))) {
+      if (!(await this.balanceIsValid(chain, tx.sender, size))) {
+        console.log("balance sender tx");
+
         return false;
       }
-      if (!(await this.balanceIsValid(chain, tx.receiver))) {
+      if (!(await this.balanceIsValid(chain, tx.receiver, size))) {
+        console.log("balance sender tx");
+
         return false;
       }
     }
@@ -181,6 +188,10 @@ export class Block {
   }
 
   proof(signal: AbortSignal) {
+    //@ts-ignore
+    signal.addEventListener("abort", () => {
+      throw new Error("abort");
+    });
     while (
       this.currentHash.substring(0, this.difficulty) !==
         Array(this.difficulty).fill("0").join("") &&
@@ -191,13 +202,13 @@ export class Block {
     }
   }
 
-  async balanceIsValid(chain: BlockChain, address: string) {
-    if (!this.mappingData[address]) {
+  async balanceIsValid(chain: BlockChain, address: string, size: number) {
+    if (typeof this.mappingData[address] === "undefined") {
       return false;
     }
 
     const length = this.transactions.length;
-    let balanceChain = await chain.getBalance(address, await chain.size());
+    let balanceChain = await chain.getBalance(address, size);
 
     let balanceSubBlock = 0;
     let balanceAddBlock = 0;
@@ -226,7 +237,7 @@ export class Block {
     return true;
   }
 
-  async isValid(chain: BlockChain) {
+  async isValid(chain: BlockChain, size: number) {
     if (this === null) {
       return false;
     }
@@ -235,41 +246,39 @@ export class Block {
       return false;
     }
 
-    if (!(await this.hashIsValid(chain, await chain.size()))) {
+    if (!(await this.hashIsValid())) {
+      console.log("hash");
       return false;
     }
     if (!this.signIsValid()) {
+      console.log("sign");
+
       return false;
     }
 
     if (!this.mappingIsValid()) {
+      console.log("map");
+
       return false;
     }
-    if (!(await this.timeIsValid(chain, await chain.size()))) {
+    if (!(await this.timeIsValid())) {
+      console.log("time");
+
       return false;
     }
-    if (!(await this.transactionsValid(chain))) {
+    if (!(await this.transactionsValid(chain, size))) {
+      console.log("tx");
+
       return false;
     }
     return true;
   }
-  async hashIsValid(chain: BlockChain, index: number) {
+  async hashIsValid() {
     if (this.currentHash !== this.hash()) {
       return false;
     }
 
-    const connection = await createConnectionDb(chain.fileName);
-    const repository = connection.getRepository(BlockChainEntity);
-
-    const currentBlock = await repository.findOne({
-      where: {
-        hash: this.currentHash,
-      },
-    });
-
-    await connection.close();
-
-    return currentBlock && currentBlock.id !== index;
+    return true;
   }
 
   signIsValid() {
@@ -295,7 +304,7 @@ export class Block {
     return true;
   }
 
-  async timeIsValid(chain: BlockChain, index: number) {
+  async timeIsValid() {
     if (!this.timestamp) {
       return false;
     }
@@ -304,20 +313,6 @@ export class Block {
       return false;
     }
 
-    const connection = await createConnectionDb(chain.fileName);
-    const repository = connection.getRepository(BlockChainEntity);
-
-    const currentBlock = await repository.findOne({
-      where: {
-        hash: this.currentHash,
-      },
-    });
-
-    await connection.close();
-    const block = JSON.parse(currentBlock.block) as Block;
-    if (block.timestamp !== this.timestamp) {
-      return false;
-    }
     return true;
   }
 }
