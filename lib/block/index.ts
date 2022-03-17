@@ -1,4 +1,5 @@
 import { KeyObject, randomBytes } from "crypto";
+import { join } from "path";
 import { BlockChain } from "../chain";
 import { STORAGE_CHAIN } from "../chain/constants";
 import { createConnectionDb } from "../chain/utils";
@@ -8,6 +9,7 @@ import { START_PERCENT, STORAGE_REWARD } from "../transactions/constants";
 import { User } from "../user";
 import { createHashSha, signStruct, verifyStruct } from "../utils";
 import { DIFFICULTY, TXS_LIMIT } from "./constants";
+import { workerJob } from "./utils";
 
 export class Block {
   public currentHash: string;
@@ -98,7 +100,7 @@ export class Block {
 
     this.timestamp = Date.now();
     this.currentHash = this.hash();
-    this.proof(signal);
+    await this.proof(signal);
 
     this.signature = this.sign(user.private);
   }
@@ -187,19 +189,25 @@ export class Block {
     return signStruct(privateKey, this.currentHash);
   }
 
-  proof(signal: AbortSignal) {
-    //@ts-ignore
-    signal.addEventListener("abort", () => {
-      throw new Error("abort");
-    });
-    while (
-      this.currentHash.substring(0, this.difficulty) !==
-        Array(this.difficulty).fill("0").join("") &&
-      !signal.aborted
-    ) {
-      this.nonce++;
-      this.currentHash = this.hash();
-    }
+  async proof(signal: AbortSignal) {
+    const blockJson = {
+      transactions: this.transactions.map((item) => item.currentHash),
+      mapping: this.mappingData,
+      miner: this.miner,
+      previousHash: this.previousHash,
+      difficulty: this.difficulty,
+      timestamp: this.timestamp,
+      nonce: this.nonce,
+    };
+    const nonce = await workerJob(
+      join(__dirname, "./proofOfWorkWorker.ts"),
+      {
+        json: blockJson,
+      },
+      signal
+    );
+
+    this.nonce = nonce as number;
   }
 
   async balanceIsValid(chain: BlockChain, address: string, size: number) {
