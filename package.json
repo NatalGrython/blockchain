@@ -4,10 +4,10 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "dev": "cross-env PORT=3000 DB='index.sqlite' OWNER='owner.json' ts-node ./src/index.ts",
-    "dev1": "cross-env PORT=3001 DB='index1.sqlite' OWNER='owner1.json' ts-node ./src/index.ts",
-    "dev2": "cross-env PORT=3002 DB='index2.sqlite' OWNER='owner2.json' ts-node ./src/index.ts",
-    "dev3": "cross-env PORT=3003 DB='index3.sqlite' OWNER='owner3.json' ts-node ./src/index.ts"
+    "dev": "cross-env PORT=3000 DB='index.sqlite' OWNER='owner.json' ts-node  ./src/index.ts ",
+    "dev1": "cross-env PORT=3001 DB='index1.sqlite' OWNER='owner1.json' ts-node  ./src/index.ts ",
+    "dev2": "cross-env PORT=3002 DB='index2.sqlite' OWNER='owner2.json' ts-node  ./src/index.ts ",
+    "dev3": "cross-env PORT=3003 DB='index3.sqlite' OWNER='owner3.json' ts-node  ./src/index.ts "
   },
   "dependencies": {
     "blockchain-library": "^0.0.11",
@@ -15,5 +15,8 @@
     "sqlite3": "^5.0.2",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
   }
 }

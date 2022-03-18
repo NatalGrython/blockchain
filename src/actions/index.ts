@@ -52,7 +52,8 @@ const createUser = async () => {
 const pushBlockToNet = async (
   addresses: { host: string; port: number }[],
   block: Block,
-  size: number
+  size: number,
+  chain: BlockChain
 ) => {
   const action = {
     type: PUSH_BLOCK,
@@ -68,8 +69,7 @@ const pushBlockToNet = async (
       .filter((item) => item.port !== Number(process.env.PORT))
       .map(({ host, port }) => getSocketInfo(port, host, action))
   );
-  const results = await requsts;
-  console.log({ results });
+  await requsts;
 };
 
 const createTransaction = async ({
@@ -109,10 +109,16 @@ const createTransaction = async ({
     try {
       await globalBlock.addTransaction(chain, transaction);
       isMining = true;
-      await globalBlock.accept(chain, user, signal);
+      await globalBlock.accept(chain, owner, signal);
       isMining = false;
+
       await chain.addNewBlock(globalBlock);
-      await pushBlockToNet(addressesNode, globalBlock, await chain.size());
+      await pushBlockToNet(
+        addressesNode,
+        globalBlock,
+        await chain.size(),
+        chain
+      );
       globalBlock = createBlock(owner.stringAddress, await chain.lastHash());
     } catch (error) {
       //@ts-ignore
@@ -121,11 +127,9 @@ const createTransaction = async ({
     }
   } else {
     try {
-      console.log(transaction.currentHash);
       await globalBlock.addTransaction(chain, transaction);
     } catch (error) {
       //@ts-ignore
-      console.log("worked");
       return `fail ${error.message}`;
     }
   }
@@ -174,7 +178,8 @@ const compareBlocks = async (
     );
     const currentBlock = deserializeBlock(stringCurrentBlock);
 
-    if (!(await currentBlock.isValid(chain, i))) {
+    //@ts-ignore
+    if (!(await currentBlock.isValid(chain, i, "compare"))) {
       return;
     }
 
@@ -200,7 +205,8 @@ const addBlock = async (
   console.log("PUSHED", addressNode.port);
   const currentBlock = deserializeBlock(block);
 
-  if (!(await currentBlock.isValid(chain, await chain.size()))) {
+  //@ts-ignore
+  if (!(await currentBlock.isValid(chain, await chain.size(), "addedd"))) {
     const currentSize = await chain.size();
     if (currentSize < size) {
       await compareBlocks(addressNode, size, chain, owner);
