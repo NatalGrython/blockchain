@@ -9,6 +9,7 @@
     "experimentalDecorators": true,
     "sourceMap": true,
     "esModuleInterop": true,
-    "rootDir": "lib"
+    "rootDir": "lib",
+    "downlevelIteration": true
   }
 }

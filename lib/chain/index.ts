@@ -36,14 +36,17 @@ export class BlockChain {
     const connection = await createConnectionDb(this.fileName);
     const repository = connection.getRepository(BlockChainEntity);
     const blocks = await repository.find();
-
-    const block = blocks[size - 1];
-    const serializeBlock = deserializeBlock(block.block);
-
     await connection.close();
-    if (serializeBlock.mappingData[address]) {
-      return serializeBlock.mappingData[address];
+
+    const findBlocks = blocks.reverse();
+
+    for (const block of findBlocks) {
+      const serializeBlock = deserializeBlock(block.block);
+      if (serializeBlock.mappingData.has(address)) {
+        return serializeBlock.mappingData.get(address);
+      }
     }
+
     return 0;
   }
 
@@ -95,8 +98,8 @@ export const newChain = async (fileName: string, receiver: string) => {
     await appendFile(fileName, "");
     const blockchain = new BlockChain(fileName);
     const genesisBlock = new Block(receiver, GENESIS_BLOCK);
-    genesisBlock.mappingData[STORAGE_CHAIN] = STORAGE_VALUE;
-    genesisBlock.mappingData[receiver] = GENESIS_REWARD;
+    genesisBlock.mappingData.set(STORAGE_CHAIN, STORAGE_VALUE);
+    genesisBlock.mappingData.set(receiver, GENESIS_REWARD);
     genesisBlock.currentHash = genesisBlock.hash();
     await blockchain.addNewBlock(genesisBlock);
   } catch (error) {

@@ -21,12 +21,12 @@ export class Block {
   public signature: Buffer;
   public timestamp: number;
   public transactions: Transaction[] = [];
-  public mappingData: Record<string, number>;
+  public mappingData: Map<string, number>;
 
   constructor(miner: string, previousHash: string, difficulty?: number) {
     this.previousHash = previousHash;
     this.miner = miner;
-    this.mappingData = {};
+    this.mappingData = new Map();
     if (difficulty) {
       this.difficulty = difficulty;
     }
@@ -34,12 +34,12 @@ export class Block {
 
   async addBalance(chain: BlockChain, receiver: string, value: number) {
     let balanceChain: number = 0;
-    if (this.mappingData[receiver]) {
-      balanceChain = this.mappingData[receiver];
+    if (this.mappingData.has(receiver)) {
+      balanceChain = this.mappingData.get(receiver);
     } else {
       balanceChain = await chain.getBalance(receiver, await chain.size());
     }
-    this.mappingData[receiver] = balanceChain + value;
+    this.mappingData.set(receiver, balanceChain + value);
   }
 
   async addTransaction(chain: BlockChain, transactions: Transaction) {
@@ -52,30 +52,38 @@ export class Block {
     ) {
       throw new Error("Len tx === lm");
     }
-    let balanceChain: number = 0;
+    if (
+      transactions.value > START_PERCENT &&
+      transactions.toStorage !== STORAGE_REWARD &&
+      transactions.sender !== STORAGE_CHAIN
+    ) {
+      throw new Error("Storage reward pass");
+    }
+
+    if (transactions.previousBlock !== this.previousHash) {
+      throw new Error("Prev block is not");
+    }
+
+    let balanceInChain: number = 0;
     const balanceTransaction = transactions.value + transactions.toStorage;
 
-    if (this.mappingData[transactions.sender]) {
-      balanceChain = this.mappingData[transactions.sender];
+    if (this.mappingData.has(transactions.sender)) {
+      balanceInChain = this.mappingData.get(transactions.sender);
     } else {
-      balanceChain = await chain.getBalance(
+      balanceInChain = await chain.getBalance(
         transactions.sender,
         await chain.size()
       );
     }
 
-    if (
-      transactions.value > START_PERCENT &&
-      transactions.toStorage !== STORAGE_REWARD
-    ) {
-      throw new Error("Storage reward pass");
-    }
-
-    if (balanceTransaction > balanceChain) {
+    if (balanceTransaction > balanceInChain) {
       throw new Error("Balance >");
     }
 
-    this.mappingData[transactions.sender] = balanceChain - balanceTransaction;
+    this.mappingData.set(
+      transactions.sender,
+      balanceInChain - balanceTransaction
+    );
 
     await this.addBalance(chain, transactions.receiver, transactions.value);
 
@@ -101,15 +109,8 @@ export class Block {
 
     this.timestamp = Date.now();
     this.currentHash = this.hash();
-    try {
-      await this.proof(signal);
-    } catch (error) {
-      this.nonce = 0;
-      this.currentHash = this.hash();
-      throw new Error("Aborted");
-    } finally {
-      this.signature = this.sign(user.private);
-    }
+    await this.proof(signal);
+    this.signature = this.sign(user.private);
   }
 
   async transactionsValid(chain: BlockChain, size: number) {
@@ -154,24 +155,17 @@ export class Block {
         }
       } else {
         if (!tx.hashIsValid()) {
-          console.log("hash tx");
           return false;
         }
         if (!tx.signIsValid()) {
-          console.log("sign tx");
-
           return false;
         }
       }
 
       if (!(await this.balanceIsValid(chain, tx.sender, size))) {
-        console.log("balance sender tx");
-
         return false;
       }
       if (!(await this.balanceIsValid(chain, tx.receiver, size))) {
-        console.log("balance sender tx");
-
         return false;
       }
     }
@@ -179,9 +173,13 @@ export class Block {
   }
 
   hash() {
+    const mapping = {};
+    for (const [key, value] of this.mappingData.entries()) {
+      mapping[key] = value;
+    }
     const blockString = JSON.stringify({
       transactions: this.transactions.map((item) => item.currentHash),
-      mapping: this.mappingData,
+      mapping,
       miner: this.miner,
       previousHash: this.previousHash,
       difficulty: this.difficulty,
@@ -213,7 +211,7 @@ export class Block {
   }
 
   async balanceIsValid(chain: BlockChain, address: string, size: number) {
-    if (typeof this.mappingData[address] === "undefined") {
+    if (!this.mappingData.has(address)) {
       return false;
     }
 
@@ -239,7 +237,7 @@ export class Block {
 
     if (
       balanceChain + balanceAddBlock - balanceSubBlock !==
-      this.mappingData[address]
+      this.mappingData.get(address)
     ) {
       return false;
     }
@@ -247,7 +245,7 @@ export class Block {
     return true;
   }
 
-  async isValid(chain: BlockChain, size: number) {
+  async isValid(chain: BlockChain, size: number, reason: string) {
     if (this === null) {
       return false;
     }
@@ -257,28 +255,19 @@ export class Block {
     }
 
     if (!(await this.hashIsValid())) {
-      console.log("hash");
       return false;
     }
     if (!this.signIsValid()) {
-      console.log("sign");
-
       return false;
     }
 
     if (!this.mappingIsValid()) {
-      console.log("map");
-
       return false;
     }
     if (!(await this.timeIsValid())) {
-      console.log("time");
-
       return false;
     }
     if (!(await this.transactionsValid(chain, size))) {
-      console.log("tx");
-
       return false;
     }
     return true;
@@ -296,7 +285,7 @@ export class Block {
   }
 
   mappingIsValid() {
-    for (const [address, value] of Object.entries(this.mappingData)) {
+    for (const [address, value] of this.mappingData.entries()) {
       if (address === STORAGE_CHAIN) {
         continue;
       }

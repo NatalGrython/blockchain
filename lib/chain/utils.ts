@@ -33,9 +33,15 @@ export const deserializeBlock = (serializableBlock: any) => {
   //@ts-ignore
   const currentBlock = new Block();
 
+  const mappingData = new Map();
+
+  for (const [key, value] of Object.entries(workInProgressBlock.mappingData)) {
+    mappingData.set(key, value);
+  }
+
   currentBlock.currentHash = workInProgressBlock.currentHash;
   currentBlock.difficulty = workInProgressBlock.difficulty;
-  currentBlock.mappingData = workInProgressBlock.mappingData;
+  currentBlock.mappingData = mappingData;
   currentBlock.miner = workInProgressBlock.miner;
   currentBlock.nonce = workInProgressBlock.nonce;
   currentBlock.previousHash = workInProgressBlock.previousHash;
@@ -101,6 +107,12 @@ export const serializeTransactionJSON = (transaction: Transaction) => {
 };
 
 export const serializeBlockJSON = (block: Block) => {
+  const mapping = {};
+
+  for (const [key, value] of block.mappingData.entries()) {
+    mapping[key] = value;
+  }
+
   const blockToJSON = {
     ...block,
     signature: block.signature ? block.signature.toString("base64") : undefined,
@@ -109,6 +121,7 @@ export const serializeBlockJSON = (block: Block) => {
       signature: item.signature ? item.signature.toString("base64") : undefined,
       randomBytes: item.randomBytes.toString("base64"),
     })),
+    mappingData: mapping,
   };
 
   return blockToJSON;
