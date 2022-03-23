@@ -1,10 +1,8 @@
 import { KeyObject, randomBytes } from "crypto";
 import { join } from "path";
-import { serializeBlockJSON } from "../..";
+import { serializeBlockJSON } from "../chain/utils";
 import { BlockChain } from "../chain";
 import { STORAGE_CHAIN } from "../chain/constants";
-import { createConnectionDb } from "../chain/utils";
-import { BlockChainEntity } from "../entity/Blockchain";
 import { Transaction } from "../transactions";
 import { START_PERCENT, STORAGE_REWARD } from "../transactions/constants";
 import { User } from "../user";

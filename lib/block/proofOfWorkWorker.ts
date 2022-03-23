@@ -1,5 +1,5 @@
 import { workerData, parentPort } from "worker_threads";
-import { deserializeBlock } from "../..";
+import { deserializeBlock } from "../chain/utils";
 
 const block = deserializeBlock(workerData.block);
 let hash = block.hash();

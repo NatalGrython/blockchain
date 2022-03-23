@@ -1,24 +1,30 @@
 {
   "name": "blockchain-library",
-  "version": "0.0.11",
+  "version": "0.0.13",
   "description": "Blockchain library",
-  "main": "./lib/index.ts",
-  "types": "index.d.ts",
+  "main": "./build/index.js",
+  "types": "./build/index.d.ts",
   "license": "MIT",
   "author": "Kirill Khoroshilov <altair.al-jabavi@yandex.ru>",
   "dependencies": {
-    "@types/node": "^17.0.21",
+    "gulp-typescript": "^6.0.0-alpha.1",
     "sqlite3": "^5.0.2",
     "ts-node": "^10.7.0",
     "typeorm": "^0.2.45",
     "typescript": "^4.6.2",
     "uuid": "^8.3.2"
   },
+  "type": "module",
   "scripts": {
-    "build": "tsc",
-    "prepublish": "npm run build "
+    "build": "gulp build",
+    "prepublish": "npm run build",
+    "publish": "npm run build"
   },
   "devDependencies": {
-    "@types/uuid": "^8.3.4"
+    "@types/gulp": "^4.0.9",
+    "@types/node": "^17.0.21",
+    "@types/uuid": "^8.3.4",
+    "gulp": "^4.0.2",
+    "gulp-modify-file": "^1.0.1"
   }
 }
