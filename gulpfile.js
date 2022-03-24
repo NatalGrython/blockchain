@@ -1,7 +1,6 @@
 import gulpPackage from "gulp";
 import typescriptCompiler from "gulp-typescript";
 import modifyCompiler from "gulp-modify-file";
-import cleanCompiler from "gulp-clean";
 
 const { src, dest, series } = gulpPackage;
 
@@ -27,5 +26,3 @@ const moveWorker = () =>
     .pipe(dest("./build/block"));
 
 export const build = series(compileTypescript, moveWorker);
-
-export const slice = () => src("./lib", { read: false }).pipe(cleanCompiler());
