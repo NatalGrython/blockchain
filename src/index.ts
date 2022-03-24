@@ -4,10 +4,13 @@ import { parseAction, reduceAction } from "./actions";
 import { isFileExist } from "./utils";
 import { appendFile, readFile } from "fs/promises";
 import { WebSocketServer } from "ws";
+import { EventEmitter } from "events";
 
 const PORT = process.env.PORT;
 const DB = process.env.DB;
 const OWNER = process.env.OWNER;
+
+const emitter = new EventEmitter();
 
 const createOrLoadOwner = async () => {
   if (!(await isFileExist(OWNER))) {
@@ -43,7 +46,7 @@ server.on("connection", async (socket) => {
     const { blockchain, owner } = await createBlockChain();
     const action = parseAction(data);
 
-    const response = await reduceAction(action, blockchain, owner);
+    const response = await reduceAction(action, blockchain, owner, emitter);
     socket.write(response);
   });
 });
@@ -55,13 +58,7 @@ server.listen(Number(PORT), () => {
 const wsServer = new WebSocketServer({ port: Number(PORT) + 1 });
 
 wsServer.on("connection", (socket) => {
-  socket.on("message", async (data) => {
-    if (data instanceof Buffer) {
-      const { blockchain, owner } = await createBlockChain();
-      const action = parseAction(data);
-
-      const response = await reduceAction(action, blockchain, owner);
-      socket.send(response);
-    }
+  emitter.on("event", (event) => {
+    socket.send(JSON.stringify(event));
   });
 });
