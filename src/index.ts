@@ -3,6 +3,7 @@ import { createServer } from "net";
 import { parseAction, reduceAction } from "./actions";
 import { isFileExist } from "./utils";
 import { appendFile, readFile } from "fs/promises";
+import { WebSocketServer } from "ws";
 
 const PORT = process.env.PORT;
 const DB = process.env.DB;
@@ -49,4 +50,18 @@ server.on("connection", async (socket) => {
 
 server.listen(Number(PORT), () => {
   console.log(`Server listen tcp://${PORT}`);
+});
+
+const wsServer = new WebSocketServer({ port: Number(PORT) + 1 });
+
+wsServer.on("connection", (socket) => {
+  socket.on("message", async (data) => {
+    if (data instanceof Buffer) {
+      const { blockchain, owner } = await createBlockChain();
+      const action = parseAction(data);
+
+      const response = await reduceAction(action, blockchain, owner);
+      socket.send(response);
+    }
+  });
 });

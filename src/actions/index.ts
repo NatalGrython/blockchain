@@ -106,8 +106,6 @@ const createTransaction = async ({
 
   const globalBlock = await getGlobalBlock();
 
-  console.log(globalBlock);
-
   if (globalBlock.transactions.length + 1 > TXS_LIMIT) {
     return "fail";
   } else if (globalBlock.transactions.length + 1 === TXS_LIMIT) {
