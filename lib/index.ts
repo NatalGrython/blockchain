@@ -12,5 +12,5 @@ export {
 } from "./chain";
 export { User, createUser, loadUser } from "./user";
 export { newTransaction, Transaction } from "./transactions";
-export { Block, createBlock } from "./block";
+export { Block, createBlock, TXS_LIMIT } from "./block";
 export { BlockChainEntity } from "./entity/Blockchain";

@@ -1,5 +1,6 @@
 import { KeyObject, randomBytes } from "crypto";
-import { join } from "path";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 import { serializeBlockJSON } from "../chain/utils";
 import { BlockChain } from "../chain";
 import { STORAGE_CHAIN } from "../chain/constants";
@@ -9,6 +10,10 @@ import { User } from "../user";
 import { createHashSha, signStruct, verifyStruct } from "../utils";
 import { DIFFICULTY, TXS_LIMIT } from "./constants";
 import { workerJob } from "./utils";
+export { TXS_LIMIT } from "./constants";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export class Block {
   public currentHash: string;
