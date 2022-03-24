@@ -12,6 +12,7 @@ import {
   User,
   createConnectionDb,
   BlockChainEntity,
+  TXS_LIMIT,
 } from "blockchain-library";
 import { getSocketInfo } from "../utils";
 import {
@@ -24,8 +25,7 @@ import {
   GET_OWNER,
 } from "./constants";
 import { Action } from "./types";
-
-let globalBlock: Block;
+import { getGlobalBlock, hasGlobalBlock, setGlobalBlock } from "./utils";
 
 let controller = new AbortController();
 let isMining = false;
@@ -52,8 +52,7 @@ const createUser = async () => {
 const pushBlockToNet = async (
   addresses: { host: string; port: number }[],
   block: Block,
-  size: number,
-  chain: BlockChain
+  size: number
 ) => {
   const action = {
     type: PUSH_BLOCK,
@@ -99,13 +98,19 @@ const createTransaction = async ({
     value
   );
 
-  if (!globalBlock) {
-    globalBlock = createBlock(owner.stringAddress, await chain.lastHash());
+  if (!(await hasGlobalBlock())) {
+    await setGlobalBlock(
+      createBlock(owner.stringAddress, await chain.lastHash())
+    );
   }
 
-  if (globalBlock.transactions.length + 1 > 4) {
+  const globalBlock = await getGlobalBlock();
+
+  console.log(globalBlock);
+
+  if (globalBlock.transactions.length + 1 > TXS_LIMIT) {
     return "fail";
-  } else if (globalBlock.transactions.length + 1 === 4) {
+  } else if (globalBlock.transactions.length + 1 === TXS_LIMIT) {
     try {
       await globalBlock.addTransaction(chain, transaction);
       isMining = true;
@@ -113,21 +118,21 @@ const createTransaction = async ({
       isMining = false;
 
       await chain.addNewBlock(globalBlock);
-      await pushBlockToNet(
-        addressesNode,
-        globalBlock,
-        await chain.size(),
-        chain
+      await pushBlockToNet(addressesNode, globalBlock, await chain.size());
+      await setGlobalBlock(
+        createBlock(owner.stringAddress, await chain.lastHash())
       );
-      globalBlock = createBlock(owner.stringAddress, await chain.lastHash());
     } catch (error) {
       //@ts-ignore
-      globalBlock = createBlock(owner.stringAddress, await chain.lastHash());
+      await setGlobalBlock(
+        createBlock(owner.stringAddress, await chain.lastHash())
+      );
       return `fail ${error.message}`;
     }
   } else {
     try {
       await globalBlock.addTransaction(chain, transaction);
+      await setGlobalBlock(globalBlock);
     } catch (error) {
       //@ts-ignore
       return `fail ${error.message}`;
@@ -186,7 +191,9 @@ const compareBlocks = async (
     await chain.addNewBlock(currentBlock);
   }
 
-  globalBlock = createBlock(owner.stringAddress, await chain.lastHash());
+  await setGlobalBlock(
+    createBlock(owner.stringAddress, await chain.lastHash())
+  );
 
   if (isMining) {
     controller.abort();
@@ -216,7 +223,9 @@ const addBlock = async (
   }
 
   await chain.addNewBlock(currentBlock);
-  globalBlock = createBlock(owner.stringAddress, await chain.lastHash());
+  await setGlobalBlock(
+    createBlock(owner.stringAddress, await chain.lastHash())
+  );
 
   if (isMining) {
     controller.abort();

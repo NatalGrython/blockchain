@@ -1,17 +1,10 @@
-import {
-  Block,
-  createUser,
-  loadChain,
-  loadUser,
-  newChain,
-} from "blockchain-library";
+import { createUser, loadChain, loadUser, newChain } from "blockchain-library";
 import { createServer } from "net";
 import { parseAction, reduceAction } from "./actions";
 import { isFileExist } from "./utils";
 import { appendFile, readFile } from "fs/promises";
 
 const PORT = process.env.PORT;
-// const HOST = process.env.HOST || "localhost";
 const DB = process.env.DB;
 const OWNER = process.env.OWNER;
 

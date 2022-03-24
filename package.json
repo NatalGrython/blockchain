@@ -4,20 +4,24 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "build": "gulp build"
+    "build": "gulp build",
+    "dev": "cross-env PORT=3000 DB='index.sqlite' OWNER='owner.json'  node --experimental-specifier-resolution=node ./build/index.js",
+    "docker-dev": "node --experimental-specifier-resolution=node ./build/index.js"
   },
   "dependencies": {
-    "blockchain-library": "^0.0.13",
-    "cross-env": "^7.0.3",
-    "gulp": "^4.0.2",
-    "gulp-typescript": "^6.0.0-alpha.1",
-    "sqlite3": "^5.0.2",
-    "ts-node": "^10.7.0",
-    "typescript": "^4.6.2"
+    "blockchain-library": "^0.0.16",
+    "redis": "^4.0.4",
+    "sqlite3": "^5.0.2"
   },
   "devDependencies": {
     "@types/gulp": "^4.0.9",
-    "nodemon": "^2.0.15"
+    "@types/redis": "^4.0.11",
+    "cross-env": "^7.0.3",
+    "gulp": "^4.0.2",
+    "gulp-typescript": "^6.0.0-alpha.1",
+    "nodemon": "^2.0.15",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.2"
   },
   "type": "module"
 }
