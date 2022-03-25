@@ -9,7 +9,7 @@
     "docker-dev": "node --experimental-specifier-resolution=node ./build/index.js"
   },
   "dependencies": {
-    "blockchain-library": "^0.0.17",
+    "blockchain-library": "^0.0.18",
     "redis": "^4.0.4",
     "sqlite3": "^5.0.2",
     "ws": "^8.5.0"

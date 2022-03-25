@@ -1,10 +1,12 @@
 import { createUser, loadChain, loadUser, newChain } from "blockchain-library";
 import { createServer } from "net";
-import { parseAction, reduceAction } from "./actions";
+import { reduceAction } from "./actions";
 import { isFileExist } from "./utils";
 import { appendFile, readFile } from "fs/promises";
 import { WebSocketServer } from "ws";
 import { EventEmitter } from "events";
+import { parseAction } from "./actions/utils";
+import { getFullChain } from "./actions/get-fullchain";
 
 const PORT = process.env.PORT;
 const DB = process.env.DB;
@@ -57,8 +59,19 @@ server.listen(Number(PORT), () => {
 
 const wsServer = new WebSocketServer({ port: Number(PORT) + 1 });
 
-wsServer.on("connection", (socket) => {
+wsServer.on("connection", async (socket) => {
+  const { blockchain } = await createBlockChain();
+
+  const interval = setInterval(async () => {
+    const blocks = await getFullChain(blockchain);
+    socket.send(blocks);
+  }, 5000);
+
   emitter.on("event", (event) => {
     socket.send(JSON.stringify(event));
+  });
+
+  socket.on("close", () => {
+    clearInterval(interval);
   });
 });
