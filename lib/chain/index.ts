@@ -13,7 +13,6 @@ import {
   serializeBlock,
 } from "./utils";
 import { Block } from "../block";
-import EventEmitter from "events";
 export {
   deserializeBlock,
   serializeBlock,
@@ -33,7 +32,7 @@ export class BlockChain {
     this.fileName = fileName;
   }
 
-  async getBalance(address: string, size: number, emitter?: EventEmitter) {
+  async getBalance(address: string, size: number) {
     const connection = await createConnectionDb(this.fileName);
     const repository = connection.getRepository(BlockChainEntity);
     const blocks = await repository.find();
@@ -44,32 +43,14 @@ export class BlockChain {
     for (const block of findBlocks) {
       const serializeBlock = deserializeBlock(block.block);
       if (serializeBlock.mappingData.has(address)) {
-        if (emitter) {
-          emitter.emit("event", {
-            type: "GET_BALANCE",
-            payload: {
-              address,
-              balance: serializeBlock.mappingData.get(address),
-            },
-          });
-        }
         return serializeBlock.mappingData.get(address);
       }
-    }
-    if (emitter) {
-      emitter.emit("event", {
-        type: "GET_BALANCE",
-        payload: {
-          address,
-          balance: 0,
-        },
-      });
     }
 
     return 0;
   }
 
-  async addNewBlock(block: Block, emitter?: EventEmitter) {
+  async addNewBlock(block: Block) {
     const connection = await createConnectionDb(this.fileName);
     const repository = connection.getRepository(BlockChainEntity);
     const newBlock = new BlockChainEntity();
@@ -78,9 +59,6 @@ export class BlockChain {
     await repository.save(newBlock);
     this.index++;
     await connection.close();
-    if (emitter) {
-      emitter.emit("event", { type: "ADD_NEW_BLOCK", block });
-    }
   }
 
   async size() {
@@ -100,7 +78,7 @@ export class BlockChain {
     return hash;
   }
 
-  async getAllChain(emitter?: EventEmitter) {
+  async getAllChain() {
     const connection = await createConnectionDb(this.fileName);
     const repository = connection.getRepository(BlockChainEntity);
     const allBlocks = await repository.find();
@@ -108,12 +86,7 @@ export class BlockChain {
       deserializeBlock(item.block)
     );
     await connection.close();
-    if (emitter) {
-      emitter.emit("event", {
-        type: "GET_FULL_CHAIN",
-        payload: serializeBlocks,
-      });
-    }
+
     return { blocks: serializeBlocks };
   }
 }

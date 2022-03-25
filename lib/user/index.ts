@@ -1,5 +1,4 @@
 import { KeyObject } from "crypto";
-import { EventEmitter } from "stream";
 import { createKeyFromString, createKeyPairs } from "./utils";
 
 export class User {
@@ -32,15 +31,9 @@ export class User {
   }
 }
 
-export const createUser = async (emitter?: EventEmitter) => {
+export const createUser = async () => {
   const { privateKey, publicKey } = await createKeyPairs();
   const newUser = new User(privateKey, publicKey);
-  if (emitter) {
-    emitter.emit("event", {
-      type: "CREATE_USER",
-      payload: { address: newUser.stringAddress, purse: newUser.stringPrivate },
-    });
-  }
   return newUser;
 };
 
