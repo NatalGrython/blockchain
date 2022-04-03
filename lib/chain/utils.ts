@@ -78,6 +78,7 @@ export const deserializeTransaction = (transaction: any) => {
 
   currentTransaction.receiver = workInProgressTransaction.receiver;
   currentTransaction.sender = workInProgressTransaction.sender;
+  currentTransaction.reason = workInProgressTransaction.reason;
 
   currentTransaction.signature = workInProgressTransaction.signature
     ? Buffer.from(workInProgressTransaction.signature, "base64")

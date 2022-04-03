@@ -12,12 +12,14 @@ export class Transaction {
   public currentHash: string;
   public randomBytes: Buffer;
   public previousBlock: string;
+  public reason: string;
 
   constructor(
     lastHash: string,
     sender: string,
     to: string,
     value: number,
+    reason: string,
     randomBytes: Buffer
   ) {
     this.randomBytes = randomBytes;
@@ -25,6 +27,7 @@ export class Transaction {
     this.sender = sender;
     this.receiver = to;
     this.value = value;
+    this.reason = reason;
   }
 
   sign(privateKey: KeyObject) {
@@ -60,7 +63,8 @@ export const newTransaction = (
   user: User,
   lastHash: string,
   to: string,
-  value: number
+  value: number,
+  reason: string
 ) => {
   const transactionRandomBytes = randomBytes(20);
   const transaction = new Transaction(
@@ -68,6 +72,7 @@ export const newTransaction = (
     user.stringAddress,
     to,
     value,
+    reason,
     transactionRandomBytes
   );
 

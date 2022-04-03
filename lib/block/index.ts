@@ -105,6 +105,7 @@ export class Block {
       STORAGE_CHAIN,
       user.stringAddress,
       STORAGE_REWARD,
+      "Mining reward",
       randomBytes(20)
     );
 
