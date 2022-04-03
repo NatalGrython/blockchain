@@ -1,18 +1,8 @@
-import { access } from "fs/promises";
 import { Socket } from "net";
-import { Action } from "../actions/types";
-
-export const isFileExist = async (fileName: string) => {
-  try {
-    await access(fileName);
-    return true;
-  } catch (error) {
-    return false;
-  }
-};
+import { Action } from "../types/actions";
 
 export const getSocketInfo = (port: number, host: string, action: Action) =>
-  new Promise<string>((resolve, reject) => {
+  new Promise<string>((resolve) => {
     const client = new Socket();
 
     client.connect(port, host, () => {

@@ -18,8 +18,8 @@ import {
   setGlobalBlock,
 } from "../../redis/block";
 import { getStatus, setStatus } from "../../redis/status";
-import { getSocketInfo } from "../../utils";
-import { GET_BLOCK } from "../constants";
+import { getSocketInfo } from "../../../utils";
+import { GET_BLOCK } from "../../../constants/actions";
 import { pushBlockToNet } from "./utils";
 
 let controller = new AbortController();
@@ -29,6 +29,7 @@ export const createTransaction = async ({
   privateKey,
   recipient,
   value,
+  reason,
   chain,
   owner,
   addressesNode,
@@ -38,6 +39,7 @@ export const createTransaction = async ({
   privateKey: string;
   recipient: string;
   value: number;
+  reason: string;
   chain: BlockChain;
   addressesNode: { port: number; host: string }[];
   owner: User;
@@ -48,7 +50,8 @@ export const createTransaction = async ({
     user,
     await chain.lastHash(),
     recipient,
-    value
+    value,
+    reason
   );
 
   if (!(await hasGlobalBlock())) {

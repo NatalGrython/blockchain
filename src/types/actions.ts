@@ -7,7 +7,7 @@ import {
   CREATE_TRANSACTION,
   GET_BLOCK,
   GET_OWNER,
-} from "./constants";
+} from "../constants/actions";
 
 type AddressNode = {
   port: number;
@@ -40,6 +40,7 @@ type CreateTransactionAction = {
   privateKey: string;
   recipient: string;
   value: number;
+  reason: string;
   addresses: AddressNode[];
 };
 

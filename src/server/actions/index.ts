@@ -1,21 +1,21 @@
 import { BlockChain, User } from "blockchain-library";
 import { EventEmitter } from "events";
 import {
-  PUSH_BLOCK,
-  GET_BLOCK,
   GET_BALANCE,
   GET_FULL_CHAIN,
   CREATE_USER,
   CREATE_TRANSACTION,
+  PUSH_BLOCK,
+  GET_BLOCK,
   GET_OWNER,
-} from "./constants";
+} from "../../constants/actions";
+import { Action } from "../../types/actions";
 import { createTransaction, addBlock } from "./create-transaction";
 import { createUser } from "./create-user";
 import { getBalance } from "./get-balance";
 import { getBlock } from "./get-block";
 import { getFullChain } from "./get-fullchain";
 import { getOwner } from "./get-owner";
-import { Action } from "./types";
 
 export const reduceAction = (
   action: Action,
@@ -37,6 +37,7 @@ export const reduceAction = (
         privateKey: action.privateKey,
         recipient: action.recipient,
         value: action.value,
+        reason: action.reason,
         chain,
         owner,
         emitter,
