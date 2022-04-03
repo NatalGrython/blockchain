@@ -1,6 +1,12 @@
 import { createUser, loadUser, newChain, loadChain } from "blockchain-library";
 import { access, appendFile, readFile } from "fs/promises";
+import { join, dirname } from "path";
 import { OWNER, DB } from "../../constants/system";
+import { fileURLToPath } from "url";
+
+//@ts-ignore
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export const isFileExist = async (fileName: string) => {
   try {
@@ -12,13 +18,14 @@ export const isFileExist = async (fileName: string) => {
 };
 
 export const createOrLoadOwner = async () => {
-  if (!(await isFileExist(OWNER))) {
+  const ownerPath = join(__dirname, "..", "..", "public", OWNER);
+  if (!(await isFileExist(ownerPath))) {
     const user = await createUser();
     const userData = JSON.stringify({
       address: user.stringAddress,
       privateKey: user.stringPrivate,
     });
-    await appendFile(OWNER, userData, "utf-8");
+    await appendFile(ownerPath, userData, "utf-8");
     return user;
   }
 
@@ -32,8 +39,9 @@ export const createOrLoadOwner = async () => {
 
 export const createBlockChain = async () => {
   const owner = await createOrLoadOwner();
-  if (!(await isFileExist(DB))) {
-    await newChain(DB, owner.stringAddress);
+  const dbPath = join(__dirname, "..", "..", "public", DB);
+  if (!(await isFileExist(dbPath))) {
+    await newChain(dbPath, owner.stringAddress);
   }
   return { blockchain: await loadChain(DB), owner };
 };

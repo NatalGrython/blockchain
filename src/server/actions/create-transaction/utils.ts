@@ -1,7 +1,7 @@
 import { Block, serializeBlockJSON } from "blockchain-library";
 import { EventEmitter } from "events";
-import { PUSH_BLOCK } from "../constants";
-import { getSocketInfo } from "../../utils";
+import { PUSH_BLOCK } from "../../../constants/actions";
+import { getSocketInfo } from "../../../utils";
 
 export const pushBlockToNet = async (
   addresses: { host: string; port: number }[],

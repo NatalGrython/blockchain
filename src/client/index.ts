@@ -1,23 +1,23 @@
+import express from "express";
+import bodyParser from "body-parser";
+import coreRouter from "./routes";
+import { createServer } from "http";
+import { PORT } from "../constants/system";
 import { WebSocketServer } from "ws";
-import { PORT, SYSTEM_PORT } from "../constants/system";
-import { eventEmitter } from "../events";
-import { getSocketInfo } from "../utils";
+import { onConnect } from "./controllers/webscoket";
 
-const wsServer = new WebSocketServer({ port: PORT });
+const app = express();
 
-wsServer.on("connection", async (socket) => {
-  const interval = setInterval(async () => {
-    const blocks = await getSocketInfo(SYSTEM_PORT, "localhost", {
-      type: "GET_FULL_CHAIN",
-    });
-    socket.send(blocks);
-  }, 5000);
+const server = createServer(app);
 
-  eventEmitter.on("event", (event) => {
-    socket.send(JSON.stringify(event));
-  });
+const wsServer = new WebSocketServer({ server, path: "/events" });
 
-  socket.on("close", () => {
-    clearInterval(interval);
-  });
+wsServer.on("connection", onConnect);
+
+app.use(bodyParser.json());
+
+app.use("/", coreRouter);
+
+server.listen(PORT, () => {
+  console.log(`Server started http://localhost:${PORT}`);
 });

@@ -5,16 +5,21 @@
   "license": "MIT",
   "scripts": {
     "build": "gulp build",
-    "dev": "cross-env PORT=3000 DB='index.sqlite' OWNER='owner.json'  node --experimental-specifier-resolution=node ./build/index.js",
-    "docker-dev": "node --experimental-specifier-resolution=node ./build/index.js"
+    "dev": "cross-env PORT=3000 DB='index.sqlite' OWNER='owner.json' concurrently \"npm:start:server\" \"npm:start:client\" ",
+    "docker-dev": "concurrently \"npm:start:server\" \"npm:start:client\" ",
+    "start:server": " node --experimental-specifier-resolution=node ./build/server/index.js",
+    "start:client": "node --experimental-specifier-resolution=node ./build/client/index.js"
   },
   "dependencies": {
     "blockchain-library": "^0.0.19",
+    "concurrently": "^7.1.0",
+    "express": "^4.17.3",
     "redis": "^4.0.4",
     "sqlite3": "^5.0.2",
     "ws": "^8.5.0"
   },
   "devDependencies": {
+    "@types/express": "^4.17.13",
     "@types/gulp": "^4.0.9",
     "@types/redis": "^4.0.11",
     "@types/ws": "^8.5.3",
