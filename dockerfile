@@ -6,6 +6,7 @@ COPY . /node
 
 RUN npm i 
 RUN npm run build
+RUN npm install sqlite3 --save
 
 ARG PORT=3000
 ARG DB='index.sqlite'
