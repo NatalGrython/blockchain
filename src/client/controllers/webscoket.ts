@@ -8,7 +8,9 @@ export const onConnect = (socket: WebSocket) => {
     const blocks = await getSocketInfo(SYSTEM_PORT, "localhost", {
       type: "GET_FULL_CHAIN",
     });
-    socket.send(blocks);
+    socket.send(
+      JSON.stringify({ type: "GET_FULL_CHAIN", blocks: JSON.parse(blocks) })
+    );
   }, 5000);
 
   eventEmitter.on("event", (event) => {
