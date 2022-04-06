@@ -1,5 +1,5 @@
 import { createServer } from "net";
-import { eventEmitter } from "../events";
+import { eventEmitter } from "./events";
 import { createBlockChain } from "./utils";
 import { reduceAction } from "./actions";
 import { parseAction } from "./actions/utils";

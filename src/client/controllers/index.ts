@@ -8,6 +8,7 @@ import {
 } from "../../constants/actions";
 import { SYSTEM_PORT } from "../../constants/system";
 import { getSocketInfo } from "../../utils";
+import { eventEmitter } from "../events";
 
 const isJSON = (message: string) => {
   try {
@@ -123,4 +124,9 @@ export const getOwner = async (req: Request, res: Response) => {
       message: error.message,
     });
   }
+};
+
+export const getEvent = (req: Request, res: Response) => {
+  eventEmitter.emit("event", req.body);
+  res.status(200);
 };

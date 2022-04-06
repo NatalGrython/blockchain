@@ -1,6 +1,6 @@
 import { WebSocket } from "ws";
 import { SYSTEM_PORT } from "../../constants/system";
-import { eventEmitter } from "../../events";
+import { eventEmitter } from "../events";
 import { getSocketInfo } from "../../utils";
 
 export const onConnect = (socket: WebSocket) => {
@@ -12,7 +12,6 @@ export const onConnect = (socket: WebSocket) => {
   }, 5000);
 
   eventEmitter.on("event", (event) => {
-    console.log(event);
     socket.send(JSON.stringify(event));
   });
 

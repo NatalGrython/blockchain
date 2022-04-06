@@ -4,6 +4,7 @@ import {
   createUser,
   getAllChain,
   getBalance,
+  getEvent,
   getOwner,
 } from "../controllers";
 
@@ -18,5 +19,7 @@ router.get("/user", createUser);
 router.post("/transaction", createTransaction);
 
 router.get("/owner", getOwner);
+
+router.post("/event", getEvent);
 
 export default router;
