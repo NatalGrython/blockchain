@@ -2,7 +2,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import coreRouter from "./routes";
 import { createServer } from "http";
-import { PORT } from "../constants/system";
+import { CLIENT_PORT, NET } from "../constants/system";
 import { WebSocketServer } from "ws";
 import { onConnect } from "./controllers/webscoket";
 
@@ -18,6 +18,6 @@ app.use(bodyParser.json());
 
 app.use("/", coreRouter);
 
-server.listen(PORT, () => {
-  console.log(`Server started http://localhost:${PORT}`);
+server.listen(CLIENT_PORT, () => {
+  console.log(`Server started http://${NET}:${CLIENT_PORT}`);
 });

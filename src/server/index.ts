@@ -3,7 +3,7 @@ import { eventEmitter } from "./events";
 import { createBlockChain } from "./utils";
 import { reduceAction } from "./actions";
 import { parseAction } from "./actions/utils";
-import { SYSTEM_PORT } from "../constants/system";
+import { SERVER_PORT } from "../constants/system";
 
 const server = createServer();
 
@@ -22,6 +22,6 @@ server.on("connection", async (socket) => {
   });
 });
 
-server.listen(Number(SYSTEM_PORT), () => {
-  console.info(`Started tcp://localhost:${SYSTEM_PORT}`);
+server.listen(SERVER_PORT, () => {
+  console.info(`Started tcp://localhost:${SERVER_PORT}`);
 });

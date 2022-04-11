@@ -6,7 +6,7 @@ import {
   GET_FULL_CHAIN,
   GET_OWNER,
 } from "../../constants/actions";
-import { SYSTEM_PORT } from "../../constants/system";
+import { SERVER_PORT } from "../../constants/system";
 import { getSocketInfo } from "../../utils";
 import { eventEmitter } from "../events";
 
@@ -36,7 +36,7 @@ export const getBalance = async (req: Request, res: Response) => {
       address,
     } as const;
 
-    const response = await getSocketInfo(SYSTEM_PORT, "localhost", action);
+    const response = await getSocketInfo(SERVER_PORT, "localhost", action);
 
     res.status(200).json(parseMessage(response));
   } catch (error) {
@@ -53,7 +53,7 @@ export const getAllChain = async (req: Request, res: Response) => {
       type: GET_FULL_CHAIN,
     } as const;
 
-    const response = await getSocketInfo(SYSTEM_PORT, "localhost", action);
+    const response = await getSocketInfo(SERVER_PORT, "localhost", action);
 
     res.status(200).json(parseMessage(response));
   } catch (error) {
@@ -70,7 +70,7 @@ export const createUser = async (req: Request, res: Response) => {
       type: CREATE_USER,
     } as const;
 
-    const response = await getSocketInfo(SYSTEM_PORT, "localhost", action);
+    const response = await getSocketInfo(SERVER_PORT, "localhost", action);
 
     res.status(201).json({
       user: parseMessage(response),
@@ -98,7 +98,7 @@ export const createTransaction = async (req: Request, res: Response) => {
     } as const;
 
     //@ts-ignore
-    const response = await getSocketInfo(SYSTEM_PORT, "localhost", action);
+    const response = await getSocketInfo(SERVER_PORT, "localhost", action);
 
     res.status(201).json(parseMessage(response));
   } catch (error) {
@@ -115,7 +115,7 @@ export const getOwner = async (req: Request, res: Response) => {
       type: GET_OWNER,
     } as const;
 
-    const response = await getSocketInfo(SYSTEM_PORT, "localhost", action);
+    const response = await getSocketInfo(SERVER_PORT, "localhost", action);
 
     res.status(201).json(parseMessage(response));
   } catch (error) {

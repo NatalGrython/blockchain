@@ -1,11 +1,11 @@
 import { WebSocket } from "ws";
-import { SYSTEM_PORT } from "../../constants/system";
+import { SERVER_PORT } from "../../constants/system";
 import { eventEmitter } from "../events";
 import { getSocketInfo } from "../../utils";
 
 export const onConnect = (socket: WebSocket) => {
   const interval = setInterval(async () => {
-    const blocks = await getSocketInfo(SYSTEM_PORT, "localhost", {
+    const blocks = await getSocketInfo(SERVER_PORT, "localhost", {
       type: "GET_FULL_CHAIN",
     });
     socket.send(

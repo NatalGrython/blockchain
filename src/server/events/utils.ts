@@ -1,4 +1,4 @@
-import { PORT } from "../../constants/system";
+import { CLIENT_PORT } from "../../constants/system";
 import { request } from "http";
 
 export const sendRequest = (data: any) => {
@@ -9,7 +9,7 @@ export const sendRequest = (data: any) => {
   const req = request({
     method: "POST",
     host: "localhost",
-    port: PORT,
+    port: CLIENT_PORT,
     path: "/event",
     headers: {
       "Content-Type": "application/json",
