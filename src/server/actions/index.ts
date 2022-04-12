@@ -41,6 +41,7 @@ export const reduceAction = (
         chain,
         owner,
         emitter,
+        hard: action.hard,
       });
     case PUSH_BLOCK:
       return addBlock(

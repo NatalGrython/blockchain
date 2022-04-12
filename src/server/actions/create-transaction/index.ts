@@ -34,6 +34,7 @@ export const createTransaction = async ({
   owner,
   addressesNode,
   emitter,
+  hard,
 }: {
   address: string;
   privateKey: string;
@@ -44,6 +45,7 @@ export const createTransaction = async ({
   addressesNode: { port: number; host: string }[];
   owner: User;
   emitter: EventEmitter;
+  hard?: boolean;
 }) => {
   const user = loadUser(address, privateKey);
   const transaction = newTransaction(
@@ -68,7 +70,7 @@ export const createTransaction = async ({
       payload: { message: "MAX TX IN BLOCK" },
     });
     return "fail";
-  } else if (globalBlock.transactions.length + 1 === TXS_LIMIT) {
+  } else if (globalBlock.transactions.length + 1 === TXS_LIMIT || hard) {
     try {
       await globalBlock.addTransaction(chain, transaction);
       await setStatus(true);

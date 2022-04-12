@@ -11,6 +11,7 @@
     "start:client": "node --experimental-specifier-resolution=node ./build/client/index.js"
   },
   "dependencies": {
+    "axios": "^0.26.1",
     "blockchain-library": "^0.0.19",
     "concurrently": "^7.1.0",
     "express": "^4.17.3",

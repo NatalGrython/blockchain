@@ -1,22 +1,11 @@
 import { CLIENT_PORT } from "../../constants/system";
 import { request } from "http";
+import axios from "axios";
 
 export const sendRequest = (data: any) => {
   let sendData = data;
   if (typeof data !== "string") {
     sendData = JSON.stringify(data);
   }
-  const req = request({
-    method: "POST",
-    host: "localhost",
-    port: CLIENT_PORT,
-    path: "/event",
-    headers: {
-      "Content-Type": "application/json",
-      "Content-Length": sendData.length,
-    },
-  });
-
-  req.write(sendData);
-  req.end();
+  axios.post(`http://localhost:${CLIENT_PORT}/event`, sendData);
 };

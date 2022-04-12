@@ -14,6 +14,12 @@ services:
     depends_on:
       - redis
     environment:
-      - PORT=3000
+      - CLIENT_PORT=3000
+      - SERVER_PORT=1907
+      - HOST_IP=localhost
+      - PROXY_HOST=host.docker.internal
+      - PROXY_PORT=5000
       - DB='index.sqlite'
       - OWNER='owner.json'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

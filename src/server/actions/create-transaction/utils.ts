@@ -1,9 +1,8 @@
 import { Block, serializeBlockJSON } from "blockchain-library";
 import { EventEmitter } from "events";
 import { PUSH_BLOCK } from "../../../constants/actions";
-import { CLIENT_PORT, NET } from "../../../constants/system";
+import { CLIENT_PORT, HOST_IP } from "../../../constants/system";
 import { getSocketInfo } from "../../../utils";
-import { networkInterfaces } from "os";
 
 export const pushBlockToNet = async (
   addresses: { host: string; port: number }[],
@@ -11,14 +10,12 @@ export const pushBlockToNet = async (
   size: number,
   emitter: EventEmitter
 ) => {
-  const n = networkInterfaces();
-
   const action = {
     type: PUSH_BLOCK,
     block: serializeBlockJSON(block),
     size,
     addressNode: {
-      host: NET,
+      host: HOST_IP,
       port: CLIENT_PORT,
     },
   } as const;

@@ -42,6 +42,7 @@ type CreateTransactionAction = {
   value: number;
   reason: string;
   addresses: AddressNode[];
+  hard?: boolean;
 };
 
 type GetBlockAction = {
