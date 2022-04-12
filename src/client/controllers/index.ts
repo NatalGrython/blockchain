@@ -85,7 +85,8 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const createTransaction = async (req: Request, res: Response) => {
   try {
-    const { address, privateKey, recipient, value, reason } = req.body;
+    const { address, privateKey, recipient, value, reason, hard, addresses } =
+      req.body;
 
     const action = {
       type: CREATE_TRANSACTION,
@@ -94,7 +95,8 @@ export const createTransaction = async (req: Request, res: Response) => {
       recipient,
       value,
       reason,
-      addresses: [],
+      addresses,
+      hard,
     } as const;
 
     //@ts-ignore
