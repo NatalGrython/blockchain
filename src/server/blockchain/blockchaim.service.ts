@@ -32,7 +32,7 @@ export class BlockchainService {
     @Inject(BLOCK_CHAIN_INSTANCE) private blockchain: BlockChain,
     @Inject(OWNER_INSTANCE) private owner: User,
     @Inject(ABORT_CONTROLLER) private abortController: AbortController,
-    @Inject(GLOBAL_BLOCK) private globalBlock: Block,
+    @Inject(GLOBAL_BLOCK) private globalBlock: { block: Block },
     @Inject(CREATE_USER_INSTANCE)
     private createUserFunc: typeof createUserBlockchain,
     @Inject(CREATE_BLOCK_INSTANCE)
@@ -59,7 +59,6 @@ export class BlockchainService {
   }
 
   async createUser() {
-    console.log(this.globalBlock);
     const user = await this.createUserFunc();
     return {
       address: user.stringAddress,
@@ -86,27 +85,39 @@ export class BlockchainService {
       createTransactionDto.value,
       createTransactionDto.reason,
     );
-    if (this.globalBlock.transactions.length + 1 > TXS_LIMIT) {
+    if (this.globalBlock.block.transactions.length + 1 > TXS_LIMIT) {
       return 'fail';
-    } else if (this.globalBlock.transactions.length + 1 === TXS_LIMIT) {
+    } else if (this.globalBlock.block.transactions.length + 1 === TXS_LIMIT) {
       try {
-        await this.globalBlock.addTransaction(this.blockchain, transaction);
-        await this.globalBlock.accept(
+        await this.globalBlock.block.addTransaction(
+          this.blockchain,
+          transaction,
+        );
+        await this.globalBlock.block.accept(
           this.blockchain,
           user,
           this.abortController.signal,
         );
+        await this.blockchain.addNewBlock(this.globalBlock.block);
         this.pushBlockToNet(
           createTransactionDto.addresses,
-          this.globalBlock,
+          this.globalBlock.block,
           await this.blockchain.size(),
+        );
+        this.globalBlock.block = this.createBlockFunc(
+          this.owner.stringAddress,
+          await this.blockchain.lastHash(),
         );
       } catch (error) {
         return error;
       }
     } else {
       try {
-        await this.globalBlock.addTransaction(this.blockchain, transaction);
+        await this.globalBlock.block.addTransaction(
+          this.blockchain,
+          transaction,
+        );
+        console.log(this.globalBlock);
       } catch (error) {
         return error;
       }

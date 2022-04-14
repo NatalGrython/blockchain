@@ -44,7 +44,6 @@ export class TcpService {
       });
 
       this.socket.on('error', (error) => {
-        console.log(error);
         subscriber.error(error);
       });
 

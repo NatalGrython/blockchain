@@ -52,7 +52,7 @@ export class BlockchainModule {
               user.stringAddress,
               await chain.lastHash(),
             );
-            return block;
+            return { block };
           },
           inject: [
             { token: BLOCK_CHAIN_INSTANCE, optional: true },
