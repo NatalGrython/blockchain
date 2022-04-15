@@ -1,46 +1,31 @@
 import { Inject, Injectable } from '@nestjs/common';
 import {
   BlockChain,
-  createUser as createUserBlockchain,
   User,
   Block,
   TXS_LIMIT,
-  newTransaction,
-  createBlock,
-  loadUser,
   deserializeBlock,
   createConnectionDb,
   BlockChainEntity,
 } from 'blockchain-library';
-import { firstValueFrom, from, zip } from 'rxjs';
+import { firstValueFrom, zip } from 'rxjs';
 import { CreateTransactionDto } from 'src/dto/create-transaction.dto';
 import { TcpService } from 'src/tcp/tcp.service';
-import {
-  ABORT_CONTROLLER,
-  BLOCK_CHAIN_INSTANCE,
-  CREATE_USER_INSTANCE,
-  GLOBAL_BLOCK,
-  OWNER_INSTANCE,
-  CREATE_BLOCK_INSTANCE,
-  CREATE_TRANSACTION_INSTANCE,
-  LOAD_USER_INSTANCE,
-} from './blockchain.constants';
+import { BLOCK_CHAIN_INSTANCE, OWNER_INSTANCE } from './blockchain.constants';
+import { AbortService } from './services/abort.service';
+import { BlockService } from './services/block.service';
+import { TransactionService } from './services/transactions.service';
+import { UserService } from './services/user.service';
 
 @Injectable()
 export class BlockchainService {
   constructor(
     @Inject(BLOCK_CHAIN_INSTANCE) private blockchain: BlockChain,
     @Inject(OWNER_INSTANCE) private owner: User,
-    @Inject(ABORT_CONTROLLER) private abortController: AbortController,
-    @Inject(GLOBAL_BLOCK) private globalBlock: { block: Block },
-    @Inject(CREATE_USER_INSTANCE)
-    private createUserFunc: typeof createUserBlockchain,
-    @Inject(CREATE_BLOCK_INSTANCE)
-    private createBlockFunc: typeof createBlock,
-    @Inject(CREATE_TRANSACTION_INSTANCE)
-    private createTransactionFunc: typeof newTransaction,
-    @Inject(LOAD_USER_INSTANCE)
-    private loadUserFunc: typeof loadUser,
+    private transactionService: TransactionService,
+    private blockService: BlockService,
+    private userService: UserService,
+    private abortService: AbortService,
     private tcpService: TcpService,
   ) {}
 
@@ -59,7 +44,7 @@ export class BlockchainService {
   }
 
   async createUser() {
-    const user = await this.createUserFunc();
+    const user = await this.userService.createUser();
     return {
       address: user.stringAddress,
       privateKey: user.stringPrivate,
@@ -74,37 +59,50 @@ export class BlockchainService {
   }
 
   async createTransaction(createTransactionDto: CreateTransactionDto) {
-    const user = this.loadUserFunc(
+    const user = this.userService.parseUser(
       createTransactionDto.address,
       createTransactionDto.privateKey,
     );
-    const transaction = this.createTransactionFunc(
+    const transaction = this.transactionService.createTransaction(
       user,
       await this.blockchain.lastHash(),
       createTransactionDto.recipient,
       createTransactionDto.value,
       createTransactionDto.reason,
     );
-    if (this.globalBlock.block.transactions.length + 1 > TXS_LIMIT) {
+
+    let globalBlock: Block;
+    let abortController: AbortController;
+
+    if (!this.blockService.hasInstance()) {
+      globalBlock = this.blockService.createBlock(
+        this.owner.stringAddress,
+        await this.blockchain.lastHash(),
+      );
+    } else {
+      globalBlock = this.blockService.getBlock();
+    }
+
+    if (!this.abortService.hasInstance()) {
+      abortController = this.abortService.createAbortController();
+    } else {
+      abortController = this.abortService.getAbortController();
+    }
+
+    if (globalBlock.transactions.length + 1 > TXS_LIMIT) {
       return 'fail';
-    } else if (this.globalBlock.block.transactions.length + 1 === TXS_LIMIT) {
+    } else if (globalBlock.transactions.length + 1 === TXS_LIMIT) {
       try {
-        await this.globalBlock.block.addTransaction(
-          this.blockchain,
-          transaction,
-        );
-        await this.globalBlock.block.accept(
-          this.blockchain,
-          user,
-          this.abortController.signal,
-        );
-        await this.blockchain.addNewBlock(this.globalBlock.block);
+        await globalBlock.addTransaction(this.blockchain, transaction);
+        await globalBlock.accept(this.blockchain, user, abortController.signal);
+        console.log('work');
+        await this.blockchain.addNewBlock(globalBlock);
         this.pushBlockToNet(
           createTransactionDto.addresses,
-          this.globalBlock.block,
+          globalBlock,
           await this.blockchain.size(),
         );
-        this.globalBlock.block = this.createBlockFunc(
+        this.blockService.createBlock(
           this.owner.stringAddress,
           await this.blockchain.lastHash(),
         );
@@ -113,11 +111,8 @@ export class BlockchainService {
       }
     } else {
       try {
-        await this.globalBlock.block.addTransaction(
-          this.blockchain,
-          transaction,
-        );
-        console.log(this.globalBlock);
+        await globalBlock.addTransaction(this.blockchain, transaction);
+        console.log(globalBlock);
       } catch (error) {
         return error;
       }
@@ -151,8 +146,9 @@ export class BlockchainService {
 
     await this.blockchain.addNewBlock(currentBlock);
 
-    this.abortController.abort();
-    this.abortController = new AbortController();
+    const abortController = this.abortService.getAbortController();
+    abortController.abort();
+    this.abortService.createAbortController();
 
     return 'ok';
   }
@@ -200,6 +196,10 @@ export class BlockchainService {
 
       await this.blockchain.addNewBlock(currentBlock);
     }
+
+    const abortController = this.abortService.getAbortController();
+    abortController.abort();
+    this.abortService.createAbortController();
   }
 
   private pushBlockToNet(

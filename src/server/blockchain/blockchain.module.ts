@@ -19,6 +19,10 @@ import {
   loadUser,
 } from 'blockchain-library';
 import { TcpModule } from 'src/tcp/tcp.module';
+import { UserService } from './services/user.service';
+import { TransactionService } from './services/transactions.service';
+import { BlockService } from './services/block.service';
+import { AbortService } from './services/abort.service';
 
 @Module({})
 export class BlockchainModule {
@@ -26,10 +30,11 @@ export class BlockchainModule {
     return {
       module: BlockchainModule,
       providers: [
-        {
-          provide: ABORT_CONTROLLER,
-          useClass: AbortController,
-        },
+        UserService,
+        TransactionService,
+        BlockService,
+        AbortService,
+        BlockchainService,
         {
           provide: OWNER_INSTANCE,
           useFactory: async () => {
@@ -45,37 +50,6 @@ export class BlockchainModule {
           },
           inject: [{ token: OWNER_INSTANCE, optional: true }],
         },
-        {
-          provide: GLOBAL_BLOCK,
-          useFactory: async (chain, user) => {
-            const block = createBlock(
-              user.stringAddress,
-              await chain.lastHash(),
-            );
-            return { block };
-          },
-          inject: [
-            { token: BLOCK_CHAIN_INSTANCE, optional: true },
-            { token: OWNER_INSTANCE, optional: true },
-          ],
-        },
-        {
-          provide: CREATE_USER_INSTANCE,
-          useFactory: () => createUser,
-        },
-        {
-          provide: CREATE_TRANSACTION_INSTANCE,
-          useFactory: () => newTransaction,
-        },
-        {
-          provide: CREATE_BLOCK_INSTANCE,
-          useFactory: () => createBlock,
-        },
-        {
-          provide: LOAD_USER_INSTANCE,
-          useFactory: () => loadUser,
-        },
-        BlockchainService,
       ],
       exports: [BlockchainService],
       imports: [TcpModule],
