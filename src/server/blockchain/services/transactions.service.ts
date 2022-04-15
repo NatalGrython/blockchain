@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { newTransaction, Transaction, User } from 'blockchain-library';
+import { createTransaction, Transaction, User } from 'blockchain-library';
 
 @Injectable()
 export class TransactionService {
@@ -12,7 +12,7 @@ export class TransactionService {
     value: number,
     reason: string,
   ) {
-    this.transaction = newTransaction(user, lastHash, to, value, reason);
+    this.transaction = createTransaction(user, lastHash, to, value, reason);
     return this.transaction;
   }
 

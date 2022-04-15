@@ -1,23 +1,8 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { BlockchainService } from './blockchaim.service';
-import {
-  BLOCK_CHAIN_INSTANCE,
-  CREATE_USER_INSTANCE,
-  OWNER_INSTANCE,
-  ABORT_CONTROLLER,
-  GLOBAL_BLOCK,
-  CREATE_TRANSACTION_INSTANCE,
-  CREATE_BLOCK_INSTANCE,
-  LOAD_USER_INSTANCE,
-} from './blockchain.constants';
+import { BLOCK_CHAIN_INSTANCE, OWNER_INSTANCE } from './blockchain.constants';
 import { createBlockChain } from './utils/create-blockchain';
 import { createOrLoadOwner } from './utils/create-owner.utils';
-import {
-  createUser,
-  createBlock,
-  newTransaction,
-  loadUser,
-} from 'blockchain-library';
 import { TcpModule } from 'src/tcp/tcp.module';
 import { UserService } from './services/user.service';
 import { TransactionService } from './services/transactions.service';

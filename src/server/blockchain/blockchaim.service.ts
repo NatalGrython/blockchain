@@ -7,6 +7,8 @@ import {
   deserializeBlock,
   createConnectionDb,
   BlockChainEntity,
+  serializeTransactionJSON,
+  serializeBlockJSON,
 } from 'blockchain-library';
 import { firstValueFrom, zip } from 'rxjs';
 import { CreateTransactionDto } from 'src/dto/create-transaction.dto';
@@ -29,13 +31,14 @@ export class BlockchainService {
     private tcpService: TcpService,
   ) {}
 
-  async getBalance(address: string) {
-    const size = await this.blockchain.size();
-    return this.blockchain.getBalance(address, size);
+  getBalance(address: string) {
+    return this.blockchain.getBalance(address);
   }
 
-  getFullChain() {
-    return this.blockchain.getAllChain();
+  async getFullChain() {
+    const { blocks } = await this.blockchain.getAllChain();
+    const currentBlocks = blocks.map(serializeBlockJSON);
+    return currentBlocks;
   }
 
   async getBlock(index: number) {
@@ -95,7 +98,6 @@ export class BlockchainService {
       try {
         await globalBlock.addTransaction(this.blockchain, transaction);
         await globalBlock.accept(this.blockchain, user, abortController.signal);
-        console.log('work');
         await this.blockchain.addNewBlock(globalBlock);
         this.pushBlockToNet(
           createTransactionDto.addresses,
@@ -112,13 +114,12 @@ export class BlockchainService {
     } else {
       try {
         await globalBlock.addTransaction(this.blockchain, transaction);
-        console.log(globalBlock);
       } catch (error) {
         return error;
       }
     }
 
-    return transaction;
+    return serializeTransactionJSON(transaction);
   }
 
   async pushBlocks(
@@ -128,13 +129,7 @@ export class BlockchainService {
   ) {
     const currentBlock = deserializeBlock(block);
 
-    if (
-      !(await currentBlock.isValid(
-        this.blockchain,
-        await this.blockchain.size(),
-        'check',
-      ))
-    ) {
+    if (!(await currentBlock.isValid(this.blockchain))) {
       const currentSize = await this.blockchain.size();
 
       if (currentSize < size) {
@@ -190,7 +185,7 @@ export class BlockchainService {
       );
       const currentBlock = deserializeBlock(stringCurrentBlock);
 
-      if (!(await currentBlock.isValid(this.blockchain, i, 'compare'))) {
+      if (!(await currentBlock.isValid(this.blockchain))) {
         return;
       }
 

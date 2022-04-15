@@ -25,7 +25,7 @@
     "@nestjs/core": "^8.0.0",
     "@nestjs/microservices": "^8.4.4",
     "@nestjs/platform-express": "^8.0.0",
-    "blockchain-library": "^0.0.19",
+    "blockchain-library": "^0.0.21",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0"
