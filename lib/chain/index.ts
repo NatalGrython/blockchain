@@ -13,6 +13,12 @@ import {
   serializeBlock,
 } from "./utils";
 import { Block } from "../block";
+import {
+  ChainNotCreatedError,
+  FileExistError,
+  ChainNotLoadedError,
+  ConnectionError,
+} from "../errors";
 export {
   deserializeBlock,
   serializeBlock,
@@ -25,76 +31,96 @@ export {
 } from "./utils";
 
 export class BlockChain {
-  public fileName: string; //Repository<BlockChainEntity>
+  public fileName: string;
   public index: number = 0;
 
   constructor(fileName: string) {
     this.fileName = fileName;
   }
 
-  async getBalance(address: string, size: number) {
-    const connection = await createConnectionDb(this.fileName);
-    const repository = connection.getRepository(BlockChainEntity);
-    const blocks = await repository.find();
-    await connection.close();
+  async getBalance(address: string) {
+    try {
+      const connection = await createConnectionDb(this.fileName);
+      const repository = connection.getRepository(BlockChainEntity);
+      const blocks = await repository.find();
+      await connection.close();
 
-    const findBlocks = blocks.reverse();
+      const findBlocks = blocks.reverse();
 
-    for (const block of findBlocks) {
-      const serializeBlock = deserializeBlock(block.block);
-      if (serializeBlock.mappingData.has(address)) {
-        return serializeBlock.mappingData.get(address);
+      for (const block of findBlocks) {
+        const serializeBlock = deserializeBlock(block.block);
+        if (serializeBlock.mappingData.has(address)) {
+          return serializeBlock.mappingData.get(address);
+        }
       }
-    }
 
-    return 0;
+      return 0;
+    } catch (error) {
+      throw new ConnectionError(error);
+    }
   }
 
   async addNewBlock(block: Block) {
-    const connection = await createConnectionDb(this.fileName);
-    const repository = connection.getRepository(BlockChainEntity);
-    const newBlock = new BlockChainEntity();
-    newBlock.block = serializeBlock(block);
-    newBlock.hash = block.currentHash;
-    await repository.save(newBlock);
-    this.index++;
-    await connection.close();
+    try {
+      const connection = await createConnectionDb(this.fileName);
+      const repository = connection.getRepository(BlockChainEntity);
+      const newBlock = new BlockChainEntity();
+      newBlock.block = serializeBlock(block);
+      newBlock.hash = block.currentHash;
+      await repository.save(newBlock);
+      this.index++;
+      await connection.close();
+    } catch (error) {
+      throw new ConnectionError(error);
+    }
   }
 
   async size() {
-    const connection = await createConnectionDb(this.fileName);
-    const repository = connection.getRepository(BlockChainEntity);
-    const data = await repository.find();
-    await connection.close();
-    return data.length;
+    try {
+      const connection = await createConnectionDb(this.fileName);
+      const repository = connection.getRepository(BlockChainEntity);
+      const data = await repository.find();
+      await connection.close();
+      return data.length;
+    } catch (error) {
+      throw new ConnectionError(error);
+    }
   }
 
   async lastHash() {
-    const connection = await createConnectionDb(this.fileName);
-    const repository = connection.getRepository(BlockChainEntity);
-    const allBlocks = await repository.find();
-    const hash = allBlocks[allBlocks.length - 1].hash;
-    await connection.close();
-    return hash;
+    try {
+      const connection = await createConnectionDb(this.fileName);
+      const repository = connection.getRepository(BlockChainEntity);
+      const allBlocks = await repository.find();
+      const hash = allBlocks[allBlocks.length - 1].hash;
+      await connection.close();
+      return hash;
+    } catch (error) {
+      throw new ConnectionError(error);
+    }
   }
 
   async getAllChain() {
-    const connection = await createConnectionDb(this.fileName);
-    const repository = connection.getRepository(BlockChainEntity);
-    const allBlocks = await repository.find();
-    const serializeBlocks = allBlocks.map((item) =>
-      deserializeBlock(item.block)
-    );
-    await connection.close();
+    try {
+      const connection = await createConnectionDb(this.fileName);
+      const repository = connection.getRepository(BlockChainEntity);
+      const allBlocks = await repository.find();
+      const serializeBlocks = allBlocks.map((item) =>
+        deserializeBlock(item.block)
+      );
+      await connection.close();
 
-    return { blocks: serializeBlocks };
+      return { blocks: serializeBlocks };
+    } catch (error) {
+      throw new ConnectionError(error);
+    }
   }
 }
 
 export const newChain = async (fileName: string, receiver: string) => {
   try {
     if (await checkExistsFile(fileName)) {
-      throw new Error("File exist");
+      throw new FileExistError(fileName);
     }
     await appendFile(fileName, "");
     const blockchain = new BlockChain(fileName);
@@ -104,8 +130,7 @@ export const newChain = async (fileName: string, receiver: string) => {
     genesisBlock.currentHash = genesisBlock.hash();
     await blockchain.addNewBlock(genesisBlock);
   } catch (error) {
-    console.error(error);
-    throw new Error("Chain is not created");
+    throw new ChainNotCreatedError(fileName, error);
   }
 };
 
@@ -115,7 +140,6 @@ export const loadChain = async (fileName: string) => {
     blockchain.index = await blockchain.size();
     return blockchain;
   } catch (error) {
-    console.error(error);
-    throw new Error("Chain is not loaded");
+    throw new ChainNotLoadedError(fileName, error);
   }
 };

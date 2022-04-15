@@ -1,4 +1,5 @@
 import { KeyObject } from "crypto";
+import { UserNotCreatedError } from "../errors";
 import { createKeyFromString, createKeyPairs } from "./utils";
 
 export class User {
@@ -32,9 +33,13 @@ export class User {
 }
 
 export const createUser = async () => {
-  const { privateKey, publicKey } = await createKeyPairs();
-  const newUser = new User(privateKey, publicKey);
-  return newUser;
+  try {
+    const { privateKey, publicKey } = await createKeyPairs();
+    const newUser = new User(privateKey, publicKey);
+    return newUser;
+  } catch (error) {
+    throw new UserNotCreatedError(error);
+  }
 };
 
 export const loadUser = (address: string, purse: string) => {

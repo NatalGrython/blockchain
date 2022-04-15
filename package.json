@@ -1,6 +1,6 @@
 {
   "name": "blockchain-library",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "description": "Blockchain library",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",

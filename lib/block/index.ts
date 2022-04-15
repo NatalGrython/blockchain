@@ -10,8 +10,17 @@ import { User } from "../user";
 import { createHashSha, signStruct, verifyStruct } from "../utils";
 import { DIFFICULTY, TXS_LIMIT } from "./constants";
 import { workerJob } from "./utils";
+import {
+  TransactionIsNoValidBlock,
+  TransactionLessBalanceError,
+  TransactionNoValidError,
+  TransactionNullableValueError,
+  TransactionOverflowError,
+  TransactionStorageRewardPassError,
+} from "../errors";
 export { TXS_LIMIT } from "./constants";
 
+//@ts-ignore
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -40,31 +49,47 @@ export class Block {
     if (this.mappingData.has(receiver)) {
       balanceChain = this.mappingData.get(receiver);
     } else {
-      balanceChain = await chain.getBalance(receiver, await chain.size());
+      balanceChain = await chain.getBalance(receiver);
     }
     this.mappingData.set(receiver, balanceChain + value);
   }
 
   async addTransaction(chain: BlockChain, transactions: Transaction) {
     if (transactions.value === 0) {
-      throw new Error("Transaction value 0");
+      throw new TransactionNullableValueError(
+        transactions.sender,
+        transactions.receiver,
+        transactions.reason
+      );
     }
     if (
       this.transactions.length === TXS_LIMIT &&
       transactions.sender !== STORAGE_CHAIN
     ) {
-      throw new Error("Len tx === lm");
+      throw new TransactionOverflowError(
+        transactions.sender,
+        transactions.receiver,
+        transactions.reason
+      );
     }
     if (
       transactions.value > START_PERCENT &&
       transactions.toStorage !== STORAGE_REWARD &&
       transactions.sender !== STORAGE_CHAIN
     ) {
-      throw new Error("Storage reward pass");
+      throw new TransactionStorageRewardPassError(
+        transactions.sender,
+        transactions.receiver,
+        transactions.reason
+      );
     }
 
     if (transactions.previousBlock !== this.previousHash) {
-      throw new Error("Prev block is not");
+      throw new TransactionIsNoValidBlock(
+        transactions.sender,
+        transactions.receiver,
+        transactions.reason
+      );
     }
 
     let balanceInChain: number = 0;
@@ -73,14 +98,17 @@ export class Block {
     if (this.mappingData.has(transactions.sender)) {
       balanceInChain = this.mappingData.get(transactions.sender);
     } else {
-      balanceInChain = await chain.getBalance(
-        transactions.sender,
-        await chain.size()
-      );
+      balanceInChain = await chain.getBalance(transactions.sender);
     }
 
     if (balanceTransaction > balanceInChain) {
-      throw new Error("Balance >");
+      throw new TransactionLessBalanceError(
+        transactions.sender,
+        balanceInChain,
+        balanceTransaction,
+        transactions.receiver,
+        transactions.reason
+      );
     }
 
     this.mappingData.set(
@@ -96,8 +124,8 @@ export class Block {
   }
 
   async accept(chain: BlockChain, user: User, signal: AbortSignal) {
-    if (!(await this.transactionsValid(chain, await chain.size()))) {
-      throw new Error("No valid");
+    if (!(await this.transactionsValid(chain))) {
+      throw new TransactionNoValidError();
     }
 
     const newTx = new Transaction(
@@ -117,7 +145,7 @@ export class Block {
     this.signature = this.sign(user.private);
   }
 
-  async transactionsValid(chain: BlockChain, size: number) {
+  async transactionsValid(chain: BlockChain) {
     const length = this.transactions.length;
     let plusStorage = 0;
     for (let i = 0; i < length; i++) {
@@ -166,10 +194,10 @@ export class Block {
         }
       }
 
-      if (!(await this.balanceIsValid(chain, tx.sender, size))) {
+      if (!(await this.balanceIsValid(chain, tx.sender))) {
         return false;
       }
-      if (!(await this.balanceIsValid(chain, tx.receiver, size))) {
+      if (!(await this.balanceIsValid(chain, tx.receiver))) {
         return false;
       }
     }
@@ -214,13 +242,13 @@ export class Block {
     this.currentHash = hash as string;
   }
 
-  async balanceIsValid(chain: BlockChain, address: string, size: number) {
+  async balanceIsValid(chain: BlockChain, address: string) {
     if (!this.mappingData.has(address)) {
       return false;
     }
 
     const length = this.transactions.length;
-    let balanceChain = await chain.getBalance(address, size);
+    let balanceChain = await chain.getBalance(address);
 
     let balanceSubBlock = 0;
     let balanceAddBlock = 0;
@@ -249,7 +277,7 @@ export class Block {
     return true;
   }
 
-  async isValid(chain: BlockChain, size: number, reason: string) {
+  async isValid(chain: BlockChain) {
     if (this === null) {
       return false;
     }
@@ -271,7 +299,7 @@ export class Block {
     if (!(await this.timeIsValid())) {
       return false;
     }
-    if (!(await this.transactionsValid(chain, size))) {
+    if (!(await this.transactionsValid(chain))) {
       return false;
     }
     return true;

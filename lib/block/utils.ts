@@ -1,9 +1,6 @@
 import { Worker } from "worker_threads";
-
-type WorkerData = {
-  block: any;
-  path: string;
-};
+import { AbortError } from "../errors";
+import { WorkerData } from "../types";
 
 export const workerJob = (
   workerPath: string,
@@ -13,18 +10,15 @@ export const workerJob = (
   new Promise((resolve, reject) => {
     const worker = new Worker(workerPath, {
       workerData,
-      stdout: true,
-      stdin: true,
-      stderr: true,
     });
 
     if (signal.aborted) {
-      reject("abort");
+      reject(new AbortError(workerData));
     }
 
     //@ts-ignore
     signal.addEventListener("abort", () => {
-      reject("abort");
+      reject(new AbortError(workerData));
     });
 
     worker.on("message", (message) => {

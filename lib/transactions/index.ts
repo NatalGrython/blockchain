@@ -59,7 +59,7 @@ export class Transaction {
   }
 }
 
-export const newTransaction = (
+export const createTransaction = (
   user: User,
   lastHash: string,
   to: string,
