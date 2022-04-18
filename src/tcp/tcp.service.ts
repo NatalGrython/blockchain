@@ -6,6 +6,7 @@ import { Packet } from './interfaces/packet.interface';
 import { transformPatternToRoute } from './utils/transform-pattern.utils';
 import { MsPattern } from './interfaces/patter.interface';
 import { randomUUID } from 'crypto';
+import { TcpException } from 'src/exeptions/tcp.exeption';
 
 @Injectable()
 export class TcpService {
@@ -39,7 +40,19 @@ export class TcpService {
       this.socket.connect(port, host);
 
       this.socket.on('data', (data) => {
-        subscriber.next(this.parseData(data));
+        const dataJson = this.parseData<T>(data);
+        if (dataJson.err) {
+          subscriber.error(
+            new TcpException(
+              'Incorrect data',
+              dataJson.err,
+              this.socket.remotePort,
+              this.socket.remoteAddress,
+            ),
+          );
+        } else {
+          subscriber.next(dataJson.response);
+        }
         subscriber.complete();
       });
 
@@ -51,11 +64,13 @@ export class TcpService {
     });
   }
 
-  private parseData<T>(data: Buffer): T {
+  private parseData<T>(data: Buffer): any {
     const message = data.toString('utf-8');
-    const [_, messageBody] = message.split(this.delimiter);
 
-    return JSON.parse(messageBody).response;
+    const [_, messageBody] = message.split(this.delimiter);
+    const dataJson = JSON.parse(messageBody);
+
+    return dataJson;
   }
 
   private normalizePattern(pattern: MsPattern): string {

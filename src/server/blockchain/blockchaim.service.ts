@@ -12,8 +12,9 @@ import {
   serializeBlockJSON,
 } from 'blockchain-library';
 import { firstValueFrom, zip } from 'rxjs';
-import { TcpService } from 'src/tcp/tcp.service';
-import { CreateTransactionServerDto } from '../dto/create-transaction.dto.server';
+import { CreateTransactionDto } from 'src/dto/transaction.dto';
+import { Address } from '../../interfaces/address';
+import { TcpService } from '../../tcp/tcp.service';
 import { BLOCK_CHAIN_INSTANCE, OWNER_INSTANCE } from './blockchain.constants';
 import { AbortService } from './services/abort.service';
 import { BlockService } from './services/block.service';
@@ -63,7 +64,7 @@ export class BlockchainService {
     };
   }
 
-  async createTransaction(createTransactionDto: CreateTransactionServerDto) {
+  async createTransaction(createTransactionDto: CreateTransactionDto) {
     const user = this.userService.parseUser(
       createTransactionDto.address,
       createTransactionDto.privateKey,
@@ -124,11 +125,7 @@ export class BlockchainService {
     return serializeTransactionJSON(transaction);
   }
 
-  async pushBlocks(
-    block: Block,
-    size: number,
-    addressNode: { port: number; host: string },
-  ) {
+  async pushBlocks(block: Block, size: number, addressNode: Address) {
     const currentBlock = deserializeBlock(block);
 
     if (!(await currentBlock.isValid(this.blockchain))) {
@@ -150,13 +147,7 @@ export class BlockchainService {
     return 'ok';
   }
 
-  private async compareBlocks(
-    addressNode: {
-      port: number;
-      host: string;
-    },
-    size: number,
-  ) {
+  private async compareBlocks(addressNode: Address, size: number) {
     const block = await firstValueFrom(
       this.tcpService.send(addressNode.port, addressNode.host, {
         pattern: 'block',
@@ -199,11 +190,7 @@ export class BlockchainService {
     this.abortService.createAbortController();
   }
 
-  private pushBlockToNet(
-    address: { host: string; port: number }[],
-    block: Block,
-    size: number,
-  ) {
+  private pushBlockToNet(address: Address[], block: Block, size: number) {
     zip(
       address.map((address) =>
         this.tcpService.send(address.port, address.host, {

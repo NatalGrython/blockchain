@@ -7,7 +7,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
   const appPort = configService.get('CLIENT_PORT');
-  const microservicePort = configService.get('CLIENT_PORT');
+  const microservicePort = configService.get('MICROSERVICE_PORT');
 
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.TCP,

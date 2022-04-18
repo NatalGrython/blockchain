@@ -1,16 +1,21 @@
-import { Controller } from '@nestjs/common';
+import { Controller, UseFilters, UsePipes } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
-import { CreateTransactionServerDto } from './dto/create-transaction.dto.server';
+import { GetBalanceDto } from 'src/dto/balance.dto';
+import { ValidationPipe } from 'src/pipes/validation.pipe';
+import { CreateTransactionDto } from '../dto/transaction.dto';
 import { PushBlockDto } from './dto/push-block.dto';
+import { ValidationExceptionFilter } from './filter/validation.filter';
 import { ServerService } from './server.service';
 
+@UseFilters(new ValidationExceptionFilter())
 @Controller()
 export class ServiceController {
   constructor(private serverService: ServerService) {}
 
+  @UsePipes(new ValidationPipe(false))
   @MessagePattern('balance')
-  getBalance(address: string) {
-    return this.serverService.getBalance(address);
+  getBalance(getBalanceDto: GetBalanceDto) {
+    return this.serverService.getBalance(getBalanceDto.address);
   }
 
   @MessagePattern('block')
@@ -34,7 +39,8 @@ export class ServiceController {
   }
 
   @MessagePattern('transaction')
-  createTransaction(createTransactionDto: CreateTransactionServerDto) {
+  @UsePipes(new ValidationPipe(false))
+  createTransaction(createTransactionDto: CreateTransactionDto) {
     return this.serverService.createTransaction(createTransactionDto);
   }
 
