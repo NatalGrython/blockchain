@@ -1,13 +1,18 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { TcpService } from 'src/tcp/tcp.service';
-import { CreateTransactionDto } from '../../dto/create-transaction.dto';
+import { CreateTransactionClientDto } from './dto/create-transaction.dto.client';
 
 @Injectable()
 export class ApiService {
-  constructor(private tcpService: TcpService) {}
+  constructor(
+    private tcpService: TcpService,
+    private configService: ConfigService,
+  ) {}
 
   private request(pattern: string, data?: any) {
-    return this.tcpService.send(1907, 'localhost', {
+    const microservicePort = this.configService.get('MICROSERVICE_PORT');
+    return this.tcpService.send(microservicePort, 'localhost', {
       pattern,
       data,
     });
@@ -29,7 +34,7 @@ export class ApiService {
     return this.request('owner');
   }
 
-  createTransaction(createTransactionDto: CreateTransactionDto) {
+  createTransaction(createTransactionDto: CreateTransactionClientDto) {
     return this.request('transaction', createTransactionDto);
   }
 }

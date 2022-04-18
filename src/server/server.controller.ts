@@ -1,6 +1,6 @@
 import { Controller } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
-import { CreateTransactionDto } from 'src/dto/create-transaction.dto';
+import { CreateTransactionServerDto } from './dto/create-transaction.dto.server';
 import { PushBlockDto } from './dto/push-block.dto';
 import { ServerService } from './server.service';
 
@@ -34,7 +34,7 @@ export class ServiceController {
   }
 
   @MessagePattern('transaction')
-  createTransaction(createTransactionDto: CreateTransactionDto) {
+  createTransaction(createTransactionDto: CreateTransactionServerDto) {
     return this.serverService.createTransaction(createTransactionDto);
   }
 

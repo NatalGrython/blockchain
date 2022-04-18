@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiService } from './api.service';
-import { CreateTransactionDto } from '../../dto/create-transaction.dto';
+import { CreateTransactionClientDto } from './dto/create-transaction.dto.client';
 
 @Controller('api')
 export class ApiController {
@@ -27,7 +27,7 @@ export class ApiController {
   }
 
   @Post('transaction')
-  createTransaction(@Body() createTransactionDto: CreateTransactionDto) {
+  createTransaction(@Body() createTransactionDto: CreateTransactionClientDto) {
     return this.apiService.createTransaction(createTransactionDto);
   }
 }

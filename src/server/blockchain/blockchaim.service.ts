@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   BlockChain,
   User,
@@ -11,8 +12,8 @@ import {
   serializeBlockJSON,
 } from 'blockchain-library';
 import { firstValueFrom, zip } from 'rxjs';
-import { CreateTransactionDto } from 'src/dto/create-transaction.dto';
 import { TcpService } from 'src/tcp/tcp.service';
+import { CreateTransactionServerDto } from '../dto/create-transaction.dto.server';
 import { BLOCK_CHAIN_INSTANCE, OWNER_INSTANCE } from './blockchain.constants';
 import { AbortService } from './services/abort.service';
 import { BlockService } from './services/block.service';
@@ -29,6 +30,7 @@ export class BlockchainService {
     private userService: UserService,
     private abortService: AbortService,
     private tcpService: TcpService,
+    private configService: ConfigService,
   ) {}
 
   getBalance(address: string) {
@@ -61,7 +63,7 @@ export class BlockchainService {
     };
   }
 
-  async createTransaction(createTransactionDto: CreateTransactionDto) {
+  async createTransaction(createTransactionDto: CreateTransactionServerDto) {
     const user = this.userService.parseUser(
       createTransactionDto.address,
       createTransactionDto.privateKey,
@@ -206,7 +208,14 @@ export class BlockchainService {
       address.map((address) =>
         this.tcpService.send(address.port, address.host, {
           pattern: 'push',
-          data: { block, size, addressNode: { host: 'localhost', port: 1907 } },
+          data: {
+            block,
+            size,
+            addressNode: {
+              host: this.configService.get('MICROSERVICE_HOST'),
+              port: this.configService.get('MICROSERVICE_PORT'),
+            },
+          },
         }),
       ),
     );

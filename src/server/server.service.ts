@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CreateTransactionDto } from 'src/dto/create-transaction.dto';
 import { BlockchainService } from './blockchain/blockchaim.service';
+import { CreateTransactionServerDto } from './dto/create-transaction.dto.server';
 import { PushBlockDto } from './dto/push-block.dto';
 
 @Injectable()
@@ -27,7 +27,7 @@ export class ServerService {
     return this.blockChainService.getOwner();
   }
 
-  createTransaction(createTransaction: CreateTransactionDto) {
+  createTransaction(createTransaction: CreateTransactionServerDto) {
     return this.blockChainService.createTransaction(createTransaction);
   }
 

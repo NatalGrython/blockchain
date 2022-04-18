@@ -6,6 +6,6 @@ import { ServerService } from './server.service';
 @Module({
   controllers: [ServiceController],
   providers: [ServerService],
-  imports: [BlockchainModule.register('index.sqlite', 'owner.json')],
+  imports: [BlockchainModule],
 })
 export class ServerModule {}
