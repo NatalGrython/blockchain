@@ -1,10 +1,9 @@
 import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
-import { ValidationExceptionClient } from '../../../exeptions/validation.exeption';
-import { TcpException } from '../../../exeptions/tcp.exeption';
+import { TcpExceptionClient } from '../../../exeptions/tcp.exeption';
 
-@Catch(TcpException)
+@Catch(TcpExceptionClient)
 export class TcpExceptionFilter implements ExceptionFilter {
-  catch(exception: TcpException, host: ArgumentsHost) {
+  catch(exception: TcpExceptionClient, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
 

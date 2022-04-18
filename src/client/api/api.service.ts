@@ -51,20 +51,19 @@ export class ApiService {
   private async getAllNodes() {
     const proxyPort = this.configService.get('PROXY_PORT');
     const proxyHost = this.configService.get('PROXY_HOST');
-    return [];
-    // try {
-    //   const nodes = await firstValueFrom(
-    //     this.httpService
-    //       .get(`http://${proxyHost}:${proxyPort}`)
-    //       .pipe(map((item) => item.data)),
-    //   );
+    try {
+      const nodes = await firstValueFrom(
+        this.httpService
+          .get(`http://${proxyHost}:${proxyPort}`)
+          .pipe(map((item) => item.data)),
+      );
 
-    //   return nodes;
-    // } catch (error) {
-    //   throw new ProxyServerNotAnswerException(
-    //     'Server not answer',
-    //     `http://${proxyHost}:${proxyPort}`,
-    //   );
-    // }
+      return nodes;
+    } catch (error) {
+      throw new ProxyServerNotAnswerException(
+        'Server not answer',
+        `http://${proxyHost}:${proxyPort}`,
+      );
+    }
   }
 }
