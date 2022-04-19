@@ -20,7 +20,6 @@ export class CreateTransactionDto {
   readonly value: number;
   @IsString({ message: 'Должно быть строкой' })
   readonly reason: string;
-  @ArrayNotEmpty({ message: 'Array' })
   @IsArray({ message: 'Должен быть массив' })
   readonly addresses: Address[];
 }

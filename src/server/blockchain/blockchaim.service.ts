@@ -191,20 +191,37 @@ export class BlockchainService {
   }
 
   private pushBlockToNet(address: Address[], block: Block, size: number) {
-    zip(
-      address.map((address) =>
-        this.tcpService.send(address.port, address.host, {
+    const currentAddress = address.filter(
+      (address) =>
+        address.port !==
+        Number(this.configService.get('MICROSERVICE_DEV_PORT')),
+    );
+
+    const $responses = zip(
+      currentAddress.map((address) => {
+        console.log(
+          '🚀 ~ file: blockchaim.service.ts ~ line 206 ~ BlockchainService ~ currentAddress.map ~ address',
+          address,
+        );
+        return this.tcpService.send(address.port, address.host, {
           pattern: 'push',
           data: {
-            block,
+            block: serializeBlockJSON(block),
             size,
             addressNode: {
-              host: this.configService.get('MICROSERVICE_HOST'),
-              port: this.configService.get('MICROSERVICE_PORT'),
+              host: this.configService.get('HOST'),
+              port: this.configService.get('MICROSERVICE_DEV_PORT'),
             },
           },
-        }),
-      ),
+        });
+      }),
+    );
+
+    $responses.subscribe(
+      (value) => {
+        console.log(value);
+      },
+      (error) => console.log(error),
     );
   }
 }

@@ -32,8 +32,7 @@ export class ApiService {
   }
 
   async createTransaction(createTransactionDto: CreateTransactionClientDto) {
-    const allNodes = [];
-    // await this.getAllNodes();
+    const allNodes = await this.getAllNodes();
 
     return this.request('transaction', {
       ...createTransactionDto,
@@ -55,7 +54,7 @@ export class ApiService {
     try {
       const nodes = await firstValueFrom(
         this.httpService
-          .get(`http://${proxyHost}:${proxyPort}`)
+          .get(`http://${proxyHost}:${proxyPort}/node`)
           .pipe(map((item) => item.data)),
       );
 

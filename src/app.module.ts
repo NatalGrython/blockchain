@@ -7,7 +7,7 @@ import { ServerModule } from './server/server.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      ignoreEnvFile: true,
     }),
     ClientModule,
     ServerModule,

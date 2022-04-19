@@ -37,7 +37,8 @@ export class TcpService {
 
   private makeObservable<T>(port: number, host: string, data: string) {
     return new Observable<T>((subscriber) => {
-      this.socket.connect(port, host);
+      console.log(port, host);
+      this.socket.connect(Number(port), host);
 
       this.socket.on('data', (data) => {
         const dataJson = this.parseData<T>(data);

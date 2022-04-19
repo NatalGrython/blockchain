@@ -1,0 +1,51 @@
+version: '3.9'
+
+services:
+  node-1:
+    build: .
+    ports:
+      - '3000:3000'
+      - '1907:1907'
+    environment:
+      - CLIENT_PORT=3000
+      - MICROSERVICE_PORT=1907
+      - HOST=localhost
+      - PROXY_HOST=host.docker.internal
+      - PROXY_PORT=5001
+      - DATABASE_PATH='index.sqlite'
+      - OWNER_PATH='owner.json'
+      - MICROSERVICE_DEV_PORT=1907
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+  node-2:
+    build: .
+    ports:
+      - '3001:3000'
+      - '1908:1907'
+    environment:
+      - CLIENT_PORT=3000
+      - MICROSERVICE_PORT=1907
+      - HOST=localhost
+      - PROXY_HOST=host.docker.internal
+      - PROXY_PORT=5001
+      - DATABASE_PATH='index.sqlite'
+      - OWNER_PATH='owner.json'
+      - MICROSERVICE_DEV_PORT=1908
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+  node-3:
+    build: .
+    ports:
+      - '3002:3000'
+      - '1909:1907'
+    environment:
+      - CLIENT_PORT=3000
+      - MICROSERVICE_PORT=1907
+      - HOST=localhost
+      - PROXY_HOST=host.docker.internal
+      - PROXY_PORT=5001
+      - DATABASE_PATH='index.sqlite'
+      - OWNER_PATH='owner.json'
+      - MICROSERVICE_DEV_PORT=1909
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
