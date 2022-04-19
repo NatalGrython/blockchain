@@ -40,6 +40,14 @@ export class ApiService {
     });
   }
 
+  getBlock(index: string) {
+    return this.request('block', index);
+  }
+
+  pushBlock(pushBlockDto: any) {
+    return this.request('push', pushBlockDto);
+  }
+
   private request(pattern: string, data?: any) {
     const microservicePort = this.configService.get('MICROSERVICE_PORT');
     return this.tcpService.send(microservicePort, 'localhost', {

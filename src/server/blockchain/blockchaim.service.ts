@@ -1,3 +1,4 @@
+import { HttpService } from '@nestjs/axios';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -11,7 +12,7 @@ import {
   serializeTransactionJSON,
   serializeBlockJSON,
 } from 'blockchain-library';
-import { firstValueFrom, zip } from 'rxjs';
+import { firstValueFrom, map, zip } from 'rxjs';
 import { CreateTransactionDto } from 'src/dto/transaction.dto';
 import { Address } from '../../interfaces/address';
 import { TcpService } from '../../tcp/tcp.service';
@@ -30,7 +31,7 @@ export class BlockchainService {
     private blockService: BlockService,
     private userService: UserService,
     private abortService: AbortService,
-    private tcpService: TcpService,
+    private httpService: HttpService,
     private configService: ConfigService,
   ) {}
 
@@ -46,7 +47,7 @@ export class BlockchainService {
 
   async getBlock(index: number) {
     const { blocks } = await this.blockchain.getAllChain();
-    return blocks[index];
+    return serializeBlockJSON(blocks[index]);
   }
 
   async createUser() {
@@ -149,10 +150,9 @@ export class BlockchainService {
 
   private async compareBlocks(addressNode: Address, size: number) {
     const block = await firstValueFrom(
-      this.tcpService.send(addressNode.port, addressNode.host, {
-        pattern: 'block',
-        data: 0,
-      }),
+      this.httpService
+        .get(`http://${addressNode.host}:${addressNode.port}/block/0`)
+        .pipe(map((item) => item.data)),
     );
 
     const genesis = deserializeBlock(block);
@@ -171,10 +171,9 @@ export class BlockchainService {
 
     for (let i = 1; i < size; i++) {
       const stringCurrentBlock = await firstValueFrom(
-        this.tcpService.send(addressNode.port, addressNode.host, {
-          pattern: 'block',
-          data: i,
-        }),
+        this.httpService
+          .get(`http://${addressNode.host}:${addressNode.port}/block/${i}`)
+          .pipe(map((item) => item.data)),
       );
       const currentBlock = deserializeBlock(stringCurrentBlock);
 
@@ -199,13 +198,9 @@ export class BlockchainService {
 
     const $responses = zip(
       currentAddress.map((address) => {
-        console.log(
-          '🚀 ~ file: blockchaim.service.ts ~ line 206 ~ BlockchainService ~ currentAddress.map ~ address',
-          address,
-        );
-        return this.tcpService.send(address.port, address.host, {
-          pattern: 'push',
-          data: {
+        return this.httpService.post(
+          `http://${address.host}:${address.port}/push`,
+          {
             block: serializeBlockJSON(block),
             size,
             addressNode: {
@@ -213,7 +208,7 @@ export class BlockchainService {
               port: this.configService.get('MICROSERVICE_DEV_PORT'),
             },
           },
-        });
+        );
       }),
     );
 

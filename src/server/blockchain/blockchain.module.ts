@@ -1,14 +1,14 @@
-import { DynamicModule, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { BlockchainService } from './blockchaim.service';
 import { BLOCK_CHAIN_INSTANCE, OWNER_INSTANCE } from './blockchain.constants';
 import { createBlockChain } from './utils/create-blockchain';
 import { createOrLoadOwner } from './utils/create-owner.utils';
-import { TcpModule } from 'src/tcp/tcp.module';
 import { UserService } from './services/user.service';
 import { TransactionService } from './services/transactions.service';
 import { BlockService } from './services/block.service';
 import { AbortService } from './services/abort.service';
 import { ConfigService } from '@nestjs/config';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   providers: [
@@ -37,6 +37,6 @@ import { ConfigService } from '@nestjs/config';
     },
   ],
   exports: [BlockchainService],
-  imports: [TcpModule],
+  imports: [HttpModule],
 })
 export class BlockchainModule {}

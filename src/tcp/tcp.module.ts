@@ -9,7 +9,7 @@ import { TcpService } from './tcp.service';
     {
       provide: TCP_INSTANCE_TOKEN,
       useClass: Socket,
-      scope: Scope.TRANSIENT,
+      scope: Scope.REQUEST,
     },
   ],
   exports: [TcpService],

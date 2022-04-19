@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   UseFilters,
   UsePipes,
@@ -46,5 +47,15 @@ export class ApiController {
   @UseFilters(new ProxyServerNotAnswerExceptionFilter())
   createTransaction(@Body() createTransactionDto: CreateTransactionClientDto) {
     return this.apiService.createTransaction(createTransactionDto);
+  }
+
+  @Post('push')
+  pushBlock(@Body() pushBlockDto: any) {
+    return this.apiService.pushBlock(pushBlockDto);
+  }
+
+  @Get('block/:index')
+  getBlock(@Param('index') index: string) {
+    return this.apiService.getBlock(index);
   }
 }

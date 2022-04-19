@@ -22,7 +22,7 @@ export class ServiceController {
 
   @MessagePattern('block')
   getBlock(index: number) {
-    this.serverService.getBlock(index);
+    this.serverService.getBlock(Number(index));
   }
 
   @MessagePattern('chain')
