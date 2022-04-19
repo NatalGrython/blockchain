@@ -1,4 +1,10 @@
-import { IsString, IsInt, IsPositive, IsArray } from 'class-validator';
+import {
+  IsString,
+  IsInt,
+  IsPositive,
+  IsArray,
+  ArrayNotEmpty,
+} from 'class-validator';
 import { PickType } from '@nestjs/mapped-types';
 import { Address } from '../interfaces/address';
 
@@ -14,6 +20,7 @@ export class CreateTransactionDto {
   readonly value: number;
   @IsString({ message: 'Должно быть строкой' })
   readonly reason: string;
+  @ArrayNotEmpty({ message: 'Array' })
   @IsArray({ message: 'Должен быть массив' })
   readonly addresses: Address[];
 }

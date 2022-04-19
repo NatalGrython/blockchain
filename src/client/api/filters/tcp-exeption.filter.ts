@@ -1,13 +1,13 @@
 import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
-import { TcpExceptionClient } from '../../../exeptions/tcp.exeption';
+import { TcpException } from '../../../exeptions/tcp.exeption';
 
-@Catch(TcpExceptionClient)
+@Catch(TcpException)
 export class TcpExceptionFilter implements ExceptionFilter {
-  catch(exception: TcpExceptionClient, host: ArgumentsHost) {
+  catch(exception: TcpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
 
-    const status = exception.getStatus();
+    const status = 400;
 
     response.status(status).json({
       statusCode: status,

@@ -6,7 +6,7 @@ import { Packet } from './interfaces/packet.interface';
 import { transformPatternToRoute } from './utils/transform-pattern.utils';
 import { MsPattern } from './interfaces/patter.interface';
 import { randomUUID } from 'crypto';
-import { TcpExceptionFabric } from 'src/exeptions/tcp.exeption';
+import { TcpException } from 'src/exeptions/tcp.exeption';
 
 @Injectable()
 export class TcpService {
@@ -43,7 +43,7 @@ export class TcpService {
         const dataJson = this.parseData<T>(data);
         if (dataJson.err) {
           subscriber.error(
-            TcpExceptionFabric(
+            new TcpException(
               'Incorrect data',
               dataJson.err,
               this.socket.remotePort,

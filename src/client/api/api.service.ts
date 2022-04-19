@@ -32,7 +32,8 @@ export class ApiService {
   }
 
   async createTransaction(createTransactionDto: CreateTransactionClientDto) {
-    const allNodes = await this.getAllNodes();
+    const allNodes = [];
+    // await this.getAllNodes();
 
     return this.request('transaction', {
       ...createTransactionDto,

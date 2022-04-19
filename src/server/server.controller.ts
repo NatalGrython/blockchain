@@ -4,10 +4,12 @@ import { GetBalanceDto } from 'src/dto/balance.dto';
 import { ValidationPipe } from 'src/pipes/validation.pipe';
 import { CreateTransactionDto } from '../dto/transaction.dto';
 import { PushBlockDto } from './dto/push-block.dto';
+import { TcpExceptionFilter } from './filter/tcp-exception.filter';
 import { ValidationExceptionFilter } from './filter/validation.filter';
 import { ServerService } from './server.service';
 
 @UseFilters(new ValidationExceptionFilter())
+@UseFilters(new TcpExceptionFilter())
 @Controller()
 export class ServiceController {
   constructor(private serverService: ServerService) {}
@@ -45,6 +47,7 @@ export class ServiceController {
   }
 
   @MessagePattern('push')
+  @UsePipes(new ValidationPipe(false))
   pushBlocks(pushBlockDto: PushBlockDto) {
     return this.serverService.pushBlocks(pushBlockDto);
   }
