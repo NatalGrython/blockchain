@@ -20,6 +20,7 @@ import { AbortService } from './services/abort.service';
 import { BlockService } from './services/block.service';
 import { TransactionService } from './services/transactions.service';
 import { UserService } from './services/user.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class BlockchainService {
@@ -32,9 +33,14 @@ export class BlockchainService {
     private abortService: AbortService,
     private httpService: HttpService,
     private configService: ConfigService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
-  getBalance(address: string) {
+  async getBalance(address: string) {
+    this.eventEmitter.emit('balance', {
+      balance: await this.blockchain.getBalance(address),
+      address,
+    });
     return this.blockchain.getBalance(address);
   }
 
@@ -47,12 +53,13 @@ export class BlockchainService {
   async getBlock(index: number) {
     const { blocks } = await this.blockchain.getAllChain();
     const currentBlock = serializeBlockJSON(blocks[index]);
-
+    this.eventEmitter.emit('block', { currentBlock, index });
     return currentBlock;
   }
 
   async createUser() {
     const user = await this.userService.createUser();
+    this.eventEmitter.emit('user', { user });
     return {
       address: user.stringAddress,
       privateKey: user.stringPrivate,
@@ -60,6 +67,7 @@ export class BlockchainService {
   }
 
   getOwner() {
+    this.eventEmitter.emit('owner', { owner: this.owner });
     return {
       address: this.owner.stringAddress,
       privateKey: this.owner.stringPrivate,
@@ -102,7 +110,9 @@ export class BlockchainService {
     } else if (globalBlock.transactions.length + 1 === TXS_LIMIT) {
       try {
         await globalBlock.addTransaction(this.blockchain, transaction);
+        this.eventEmitter.emit('mining', { status: 'on' });
         await globalBlock.accept(this.blockchain, user, abortController.signal);
+        this.eventEmitter.emit('mining', { status: 'off' });
         await this.blockchain.addNewBlock(globalBlock);
         this.pushBlockToNet(
           createTransactionDto.addresses,
@@ -123,7 +133,9 @@ export class BlockchainService {
         return error;
       }
     }
-
+    this.eventEmitter.emit('transaction', {
+      transaction: serializeTransactionJSON(transaction),
+    });
     return serializeTransactionJSON(transaction);
   }
 

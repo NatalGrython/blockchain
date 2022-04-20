@@ -26,5 +26,6 @@ import { ApiService } from './api.service';
   ],
   controllers: [ApiController],
   imports: [HttpModule],
+  exports: [ApiService],
 })
 export class ApiModule {}
