@@ -13,11 +13,10 @@ import { ValidationExceptionFilter } from './filters/validation-exeption.filter'
 import { ValidationPipe } from '../../pipes/validation.pipe';
 import { ApiService } from './api.service';
 import { ProxyServerNotAnswerExceptionFilter } from './filters/proxy-server.filter';
-import { TcpExceptionFilter } from './filters/tcp-exeption.filter';
+import { PushBlockDto } from 'src/dto/push-block.dto';
 
 @Controller('api')
 @UseFilters(new ValidationExceptionFilter())
-@UseFilters(new TcpExceptionFilter())
 export class ApiController {
   constructor(private apiService: ApiService) {}
 
@@ -50,7 +49,8 @@ export class ApiController {
   }
 
   @Post('push')
-  pushBlock(@Body() pushBlockDto: any) {
+  @UsePipes(new ValidationPipe())
+  pushBlock(@Body() pushBlockDto: PushBlockDto) {
     return this.apiService.pushBlock(pushBlockDto);
   }
 

@@ -1,59 +1,52 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom, map } from 'rxjs';
 import { GetBalanceDto } from 'src/dto/balance.dto';
+import { PushBlockDto } from 'src/dto/push-block.dto';
 import { CreateTransactionClientDto } from 'src/dto/transaction.dto';
-import { TcpService } from '../../tcp/tcp.service';
 import { ProxyServerNotAnswerException } from './exeptions/proxy-server.exeption';
 
 @Injectable()
 export class ApiService {
   constructor(
-    private tcpService: TcpService,
+    @Inject('BLOCK_SERVICE') private tcpService: ClientProxy,
     private configService: ConfigService,
     private httpService: HttpService,
   ) {}
 
   getBalance(getBalanceDto: GetBalanceDto) {
-    return this.request('balance', getBalanceDto);
+    return this.tcpService.send('balance', getBalanceDto);
   }
 
   getFullChain() {
-    return this.request('chain');
+    return this.tcpService.send('chain', '');
   }
 
   createUser() {
-    return this.request('user');
+    return this.tcpService.send('user', '');
   }
 
   getOwnerChain() {
-    return this.request('owner');
+    return this.tcpService.send('owner', '');
   }
 
   async createTransaction(createTransactionDto: CreateTransactionClientDto) {
     const allNodes = await this.getAllNodes();
 
-    return this.request('transaction', {
+    return this.tcpService.send('transaction', {
       ...createTransactionDto,
       addresses: allNodes,
     });
   }
 
   getBlock(index: string) {
-    return this.request('block', index);
+    return this.tcpService.send('block', index);
   }
 
-  pushBlock(pushBlockDto: any) {
-    return this.request('push', pushBlockDto);
-  }
-
-  private request(pattern: string, data?: any) {
-    const microservicePort = this.configService.get('MICROSERVICE_PORT');
-    return this.tcpService.send(microservicePort, 'localhost', {
-      pattern,
-      data,
-    });
+  pushBlock(pushBlockDto: PushBlockDto) {
+    return this.tcpService.send('push', pushBlockDto);
   }
 
   private async getAllNodes() {

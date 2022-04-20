@@ -1,9 +1,9 @@
 import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
-import { ValidationExceptionClient } from '../../../exeptions/validation.exeption';
+import { ValidationException } from '../../../exeptions/validation.exeption';
 
-@Catch(ValidationExceptionClient)
+@Catch(ValidationException)
 export class ValidationExceptionFilter implements ExceptionFilter {
-  catch(exception: ValidationExceptionClient, host: ArgumentsHost) {
+  catch(exception: ValidationException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
 

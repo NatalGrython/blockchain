@@ -15,7 +15,6 @@ import {
 import { firstValueFrom, map, zip } from 'rxjs';
 import { CreateTransactionDto } from 'src/dto/transaction.dto';
 import { Address } from '../../interfaces/address';
-import { TcpService } from '../../tcp/tcp.service';
 import { BLOCK_CHAIN_INSTANCE, OWNER_INSTANCE } from './blockchain.constants';
 import { AbortService } from './services/abort.service';
 import { BlockService } from './services/block.service';
@@ -47,7 +46,9 @@ export class BlockchainService {
 
   async getBlock(index: number) {
     const { blocks } = await this.blockchain.getAllChain();
-    return serializeBlockJSON(blocks[index]);
+    const currentBlock = serializeBlockJSON(blocks[index]);
+
+    return currentBlock;
   }
 
   async createUser() {
@@ -126,7 +127,11 @@ export class BlockchainService {
     return serializeTransactionJSON(transaction);
   }
 
-  async pushBlocks(block: Block, size: number, addressNode: Address) {
+  async pushBlocks(
+    block: ReturnType<typeof serializeBlockJSON>,
+    size: number,
+    addressNode: Address,
+  ) {
     const currentBlock = deserializeBlock(block);
 
     if (!(await currentBlock.isValid(this.blockchain))) {
@@ -141,9 +146,11 @@ export class BlockchainService {
 
     await this.blockchain.addNewBlock(currentBlock);
 
-    const abortController = this.abortService.getAbortController();
-    abortController.abort();
-    this.abortService.createAbortController();
+    if (this.abortService.hasInstance()) {
+      const abortController = this.abortService.getAbortController();
+      abortController.abort();
+      this.abortService.createAbortController();
+    }
 
     return 'ok';
   }
@@ -151,7 +158,7 @@ export class BlockchainService {
   private async compareBlocks(addressNode: Address, size: number) {
     const block = await firstValueFrom(
       this.httpService
-        .get(`http://${addressNode.host}:${addressNode.port}/block/0`)
+        .get(`http://${addressNode.host}:${addressNode.port}/api/block/0`)
         .pipe(map((item) => item.data)),
     );
 
@@ -172,7 +179,7 @@ export class BlockchainService {
     for (let i = 1; i < size; i++) {
       const stringCurrentBlock = await firstValueFrom(
         this.httpService
-          .get(`http://${addressNode.host}:${addressNode.port}/block/${i}`)
+          .get(`http://${addressNode.host}:${addressNode.port}/api/block/${i}`)
           .pipe(map((item) => item.data)),
       );
       const currentBlock = deserializeBlock(stringCurrentBlock);
@@ -184,28 +191,29 @@ export class BlockchainService {
       await this.blockchain.addNewBlock(currentBlock);
     }
 
-    const abortController = this.abortService.getAbortController();
-    abortController.abort();
-    this.abortService.createAbortController();
+    if (this.abortService.hasInstance()) {
+      const abortController = this.abortService.getAbortController();
+      abortController.abort();
+      this.abortService.createAbortController();
+    }
   }
 
   private pushBlockToNet(address: Address[], block: Block, size: number) {
     const currentAddress = address.filter(
       (address) =>
-        address.port !==
-        Number(this.configService.get('MICROSERVICE_DEV_PORT')),
+        address.port !== Number(this.configService.get('CLIENT_PORT')),
     );
 
     const $responses = zip(
       currentAddress.map((address) => {
         return this.httpService.post(
-          `http://${address.host}:${address.port}/push`,
+          `http://${address.host}:${address.port}/api/push`,
           {
             block: serializeBlockJSON(block),
             size,
             addressNode: {
               host: this.configService.get('HOST'),
-              port: this.configService.get('MICROSERVICE_DEV_PORT'),
+              port: this.configService.get('CLIENT_PORT'),
             },
           },
         );
@@ -214,7 +222,7 @@ export class BlockchainService {
 
     $responses.subscribe(
       (value) => {
-        console.log(value);
+        console.log(value.map((item) => item.data));
       },
       (error) => console.log(error),
     );

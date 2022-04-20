@@ -1,7 +1,7 @@
-import { Injectable, UsePipes } from '@nestjs/common';
-import { CreateTransactionDto } from 'src/dto/transaction.dto';
+import { Injectable } from '@nestjs/common';
+import { PushBlockDto } from 'src/dto/push-block.dto';
+import { CreateTransactionDto } from '../dto/transaction.dto';
 import { BlockchainService } from './blockchain/blockchaim.service';
-import { PushBlockDto } from './dto/push-block.dto';
 
 @Injectable()
 export class ServerService {

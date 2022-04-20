@@ -1,23 +1,17 @@
 import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { validate, ValidationError } from 'class-validator';
-import { ValidationFabric } from '../exeptions/validation.exeption';
+import { ValidationException } from '../exeptions/validation.exeption';
 import { MappedError } from '../interfaces/mapped-error';
 
 @Injectable()
 export class ValidationPipe implements PipeTransform {
-  private isHttp: boolean;
-
-  constructor(isHttp: boolean = true) {
-    this.isHttp = isHttp;
-  }
-
   async transform(value: any, metadata: ArgumentMetadata) {
     const object = plainToInstance(metadata.metatype, value);
     const errors = await validate(object);
     if (errors.length) {
       const mappedErrors = this.mapError(errors);
-      throw ValidationFabric('Validation error', mappedErrors, this.isHttp);
+      throw new ValidationException('Validation error', mappedErrors);
     }
     return value;
   }
