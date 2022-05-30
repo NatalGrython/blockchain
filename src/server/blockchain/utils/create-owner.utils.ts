@@ -9,11 +9,17 @@ export const createOrLoadOwner = async (ownerPath: string) => {
       address: user.stringAddress,
       privateKey: user.stringPrivate,
     });
-    await appendFile(ownerPath, userData, 'utf-8');
+    await appendFile(ownerPath, userData, {
+      encoding: 'utf-8',
+      flag: 'w+',
+    });
     return user;
   }
 
-  const file = await readFile(ownerPath, 'utf-8');
+  const file = await readFile(ownerPath, {
+    encoding: 'utf-8',
+    flag: 'a+',
+  });
 
   const userJSON = JSON.parse(file);
 

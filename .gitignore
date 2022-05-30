@@ -5,7 +5,9 @@
 /*.sqlite
 
 owner*.json
-
+/temp/*
+!/temp/.gitkeep
+onwer*.json
 # Logs
 logs
 *.log

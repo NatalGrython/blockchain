@@ -1,42 +1,16 @@
 version: '3.9'
 
 services:
-  node-1:
+  node:
     build: .
     ports:
-      - '3000:3000'
+      - '${HTTP_SERVICE_PORT}:${HTTP_SERVICE_PORT}'
     environment:
-      - CLIENT_PORT=3000
-      - HOST=localhost
-      - PROXY_HOST=host.docker.internal
-      - PROXY_PORT=5001
-      - DATABASE_PATH='index.sqlite'
-      - OWNER_PATH='owner.json'
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
-  node-2:
-    build: .
-    ports:
-      - '3001:3000'
-    environment:
-      - CLIENT_PORT=3000
-      - HOST=localhost
-      - PROXY_HOST=host.docker.internal
-      - PROXY_PORT=5001
-      - DATABASE_PATH='index.sqlite'
-      - OWNER_PATH='owner.json'
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
-  node-3:
-    build: .
-    ports:
-      - '3002:3000'
-    environment:
-      - CLIENT_PORT=3000
-      - HOST=localhost
-      - PROXY_HOST=host.docker.internal
-      - PROXY_PORT=5001
-      - DATABASE_PATH='index.sqlite'
-      - OWNER_PATH='owner.json'
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
+      - CLIENT_PORT=${HTTP_SERVICE_PORT}
+      - HOST=${HTTP_SERVICE_PORT}
+      - PROXY_HOST=${PROXY_SERVICE_HOST}
+      - PROXY_PORT=${PROXY_SERVICE_PORT}
+      - DATABASE_PATH=${DATABASE_PATH}
+      - OWNER_PATH=${OWNER_PATH}
+    volumes:
+      - './temp:/node/temp'
