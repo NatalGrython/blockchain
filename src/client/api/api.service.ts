@@ -50,8 +50,8 @@ export class ApiService {
   }
 
   private async getAllNodes() {
-    const proxyPort = this.configService.get('PROXY_PORT');
-    const proxyHost = this.configService.get('PROXY_HOST');
+    const proxyPort = this.configService.get('PROXY_SERVICE_PORT');
+    const proxyHost = this.configService.get('PROXY_SERVICE_HOST');
     try {
       const nodes = await firstValueFrom(
         this.httpService

@@ -213,7 +213,7 @@ export class BlockchainService {
   private pushBlockToNet(address: Address[], block: Block, size: number) {
     const currentAddress = address.filter(
       (address) =>
-        address.port !== Number(this.configService.get('CLIENT_PORT')),
+        address.port !== Number(this.configService.get('HTTP_SERVICE_PORT')),
     );
 
     const $responses = zip(
@@ -224,8 +224,8 @@ export class BlockchainService {
             block: serializeBlockJSON(block),
             size,
             addressNode: {
-              host: this.configService.get('HOST'),
-              port: this.configService.get('CLIENT_PORT'),
+              host: this.configService.get('SERVICE_HOST'),
+              port: this.configService.get('HTTP_SERVICE_PORT'),
             },
           },
         );

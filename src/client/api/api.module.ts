@@ -15,7 +15,7 @@ import { ApiService } from './api.service';
     {
       provide: 'BLOCK_SERVICE',
       useFactory: (configService) => {
-        const microServicePort = configService.get('MICROSERVICE_PORT');
+        const microServicePort = configService.get('BLOCKCHAIN_SERVICE_PORT');
         return ClientProxyFactory.create({
           transport: Transport.TCP,
           options: { port: microServicePort },
